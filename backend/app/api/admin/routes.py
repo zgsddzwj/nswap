@@ -34,6 +34,7 @@ from app.models import (
 logger = logging.getLogger(__name__)
 
 templates = Jinja2Templates(directory="app/admin/templates")
+templates.env.filters["zip"] = zip  # 原始模板 reports.html 使用 | zip（Jinja2 3.x 无此内置过滤器）
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
