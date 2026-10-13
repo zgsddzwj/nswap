@@ -63,6 +63,8 @@ def get_trade(
     return ok(trade_dto(db, trade, user))
 
 
+# PATCH 为 API 契约方法；PUT 别名供小程序端使用（wx.request 不支持 PATCH）
+@router.put("/trades/{trade_id}/arrange")
 @router.patch("/trades/{trade_id}/arrange")
 def arrange_trade(
     trade_id: int,

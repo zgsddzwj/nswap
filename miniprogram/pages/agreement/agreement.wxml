@@ -1,0 +1,13 @@
+<view class="ns-page agreement">
+  <view class="agreement__head">
+    <view class="ns-h1">{{isPrivacy ? '隐私政策' : '用户协议'}}</view>
+    <view class="ns-hint">更新于 2026-10</view>
+  </view>
+
+  <view wx:for="{{sections}}" wx:key="title" class="ns-card agreement__section">
+    <view class="ns-h2 agreement__section-title">{{item.title}}</view>
+    <view wx:for="{{item.paragraphs}}" wx:for-item="p" wx:key="*this" class="agreement__p">{{p}}</view>
+  </view>
+
+  <view class="ns-hint agreement__foot">如有疑问请联系小区管理员</view>
+</view>

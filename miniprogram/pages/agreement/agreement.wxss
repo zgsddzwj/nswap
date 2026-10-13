@@ -1,0 +1,21 @@
+.agreement__head {
+  padding: 20rpx 8rpx 28rpx;
+}
+
+.agreement__head .ns-hint { margin-top: 8rpx; }
+
+.agreement__section { margin-bottom: 24rpx; }
+
+.agreement__section-title { margin-bottom: 16rpx; }
+
+.agreement__p {
+  font-size: 27rpx;
+  color: var(--ns-ink);
+  line-height: 1.8;
+  margin-bottom: 12rpx;
+}
+
+.agreement__foot {
+  text-align: center;
+  padding: 20rpx 0 40rpx;
+}

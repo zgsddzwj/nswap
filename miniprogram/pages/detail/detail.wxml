@@ -1,0 +1,163 @@
+<view class="detail">
+  <!-- 骨架 -->
+  <block wx:if="{{loading}}">
+    <view class="ns-skeleton detail__sk-banner"></view>
+    <view class="ns-card detail__sk-body">
+      <view class="ns-skeleton detail__sk-line"></view>
+      <view class="ns-skeleton detail__sk-line detail__sk-line--short"></view>
+    </view>
+  </block>
+
+  <!-- 加载失败 -->
+  <empty-state
+    wx:elif="{{loadError}}"
+    icon="error-circle"
+    text="内容不存在或已删除"
+    actionText="返回"
+    bind:action="goBack"
+  />
+
+  <block wx:else>
+    <!-- 图片轮播 -->
+    <swiper wx:if="{{d.images.length}}" class="detail__swiper" indicator-dots indicator-color="rgba(255,255,255,.5)" indicator-active-color="#ffffff" circular>
+      <swiper-item wx:for="{{d.images}}" wx:key="*this">
+        <image class="detail__img" src="{{item}}" mode="aspectFill" data-src="{{item}}" bindtap="onPreviewImage" />
+      </swiper-item>
+    </swiper>
+    <view wx:else class="detail__swiper detail__swiper--empty">
+      <t-icon name="image" size="96rpx" color="var(--ns-ink-3)" />
+    </view>
+
+    <!-- 主体信息 -->
+    <view class="ns-card detail__main">
+      <view class="detail__type-line">
+        <view class="detail__type" style="background: {{typeMeta.color}};">{{typeMeta.label}}</view>
+        <status-badge wx:if="{{d.status !== 'on_sale'}}" kind="item" status="{{d.status}}" />
+      </view>
+
+      <view class="detail__title">{{d.title}}</view>
+
+      <!-- 价格 / 形态 -->
+      <view class="detail__price-row">
+        <view wx:if="{{d.type === 'sell'}}" class="detail__price-wrap">
+          <view class="ns-price detail__price">
+            <text class="ns-price__symbol">¥</text>
+            <text class="ns-price__int">{{priceInt}}</text>
+            <text wx:if="{{priceDec}}" class="ns-price__dec">{{priceDec}}</text>
+          </view>
+          <text class="detail__price-note">参考价</text>
+          <view wx:if="{{d.negotiable}}" class="detail__tag" style="color: var(--ns-brand); background: var(--ns-brand-light);">可小刀</view>
+        </view>
+        <view wx:elif="{{d.type === 'give'}}" class="detail__big" style="color: var(--ns-give);">免费送</view>
+        <view wx:elif="{{d.type === 'swap'}}" class="detail__big" style="color: var(--ns-swap);">可交换</view>
+        <view wx:else class="detail__big" style="color: var(--ns-want);">求购中</view>
+      </view>
+
+      <!-- 标签行 -->
+      <view class="detail__chips">
+        <view wx:if="{{conditionLabel}}" class="detail__chip">{{conditionLabel}}</view>
+        <view class="detail__chip">{{d.building}}</view>
+        <view class="detail__chip">{{d.view_count}} 次浏览</view>
+        <view class="detail__chip">{{timeText}} 发布</view>
+      </view>
+
+      <view wx:if="{{d.description}}" class="detail__desc">{{d.description}}</view>
+
+      <view wx:if="{{d.want_desc}}" class="detail__want" style="border-color: {{typeMeta.color}};">
+        <view class="detail__want-label" style="color: {{typeMeta.color}};">{{d.type === 'want' ? '想要什么' : '想换什么'}}</view>
+        <view class="detail__want-text">{{d.want_desc}}</view>
+      </view>
+    </view>
+
+    <!-- 卖家 -->
+    <view class="ns-card detail__seller" hover-class="detail__seller--hover" bindtap="goSeller">
+      <image class="detail__avatar" src="{{d.seller.avatar_url || '/assets/tabbar/mine.png'}}" mode="aspectFill" />
+      <view class="ns-grow">
+        <view class="ns-row">
+          <text class="detail__seller-name">{{d.seller.nickname}}</text>
+          <view wx:if="{{d.seller.verified}}" class="detail__badge" style="color: var(--ns-brand); background: var(--ns-brand-light);">{{d.seller.building}} · 已验证</view>
+        </view>
+        <view class="ns-hint detail__seller-meta">成交 {{sellerDone}} · 好评 {{sellerRate}} · 被感谢 {{d.seller.stats.thanks_count}}</view>
+      </view>
+      <t-icon name="chevron-right" size="40rpx" color="var(--ns-ink-3)" />
+    </view>
+
+    <!-- 留言板 -->
+    <view class="ns-card detail__board">
+      <view class="ns-h2">邻里留言</view>
+      <block wx:if="{{messages.length}}">
+        <view wx:for="{{messages}}" wx:key="id" class="detail__msg">
+          <image class="detail__msg-avatar" src="{{item.user.avatar_url || '/assets/tabbar/mine.png'}}" mode="aspectFill" />
+          <view class="ns-grow">
+            <view class="ns-row">
+              <text class="detail__msg-name">{{item.user.nickname}}</text>
+              <text class="ns-hint">{{item.user.building}}</text>
+            </view>
+            <view class="detail__msg-content">{{item.content}}</view>
+          </view>
+        </view>
+        <view wx:if="{{!msgFinished}}" class="detail__more" hover-class="detail__more--hover" bindtap="onMoreMessages">查看更多留言</view>
+      </block>
+      <view wx:else class="detail__board-empty">还没有留言，说点什么吧</view>
+
+      <view class="detail__board-input">
+        <input
+          class="detail__board-field"
+          value="{{messageInput}}"
+          placeholder="{{d.is_mine ? '给自己的物品留言…' : '友善留言，先检后显'}}"
+          confirm-type="send"
+          bindinput="onMessageInput"
+          bindconfirm="onSendMessage"
+        />
+        <view class="detail__board-send {{messageInput ? '' : 'detail__board-send--off'}}" hover-class="detail__more--hover" bindtap="onSendMessage">发送</view>
+      </view>
+    </view>
+
+    <view class="ns-footer-bar__holder"></view>
+  </block>
+
+  <!-- 底部操作栏 -->
+  <view wx:if="{{!loading && !loadError}}" class="ns-footer-bar">
+    <view class="detail__fav {{d.is_favorite ? 'detail__fav--on' : ''}}" hover-class="detail__more--hover" bindtap="onToggleFav">
+      <t-icon name="{{d.is_favorite ? 'heart-filled' : 'heart'}}" size="44rpx" />
+    </view>
+    <view class="detail__menu" hover-class="detail__more--hover" bindtap="onOpenReport">
+      <t-icon name="error-circle" size="44rpx" color="var(--ns-ink-2)" />
+    </view>
+    <view wx:if="{{d.is_mine}}" class="detail__mine-menu" hover-class="detail__more--hover" bindtap="onMineMenu">
+      <t-icon name="edit" size="44rpx" color="var(--ns-ink-2)" />
+    </view>
+    <view
+      class="ns-grow ns-btn ns-btn--primary {{footerMode === 'pending' || footerMode === 'archived' || footerMode === 'guest' ? 'ns-btn--disabled' : ''}}"
+      hover-class="ns-btn--hover"
+      bindtap="onFooterTap"
+    >{{footerLabel}}</view>
+  </view>
+
+  <!-- 意向弹层 -->
+  <want-sheet
+    show="{{showWantSheet}}"
+    item-type="{{d.type}}"
+    negotiable="{{d.negotiable}}"
+    bind:close="onWantSheetClose"
+    bind:submit="onWantSubmit"
+  />
+
+  <!-- 举报弹层 -->
+  <t-popup visible="{{showReport}}" placement="bottom" bind:visible-change="onVisibleChangeReport">
+    <view class="report">
+      <view class="ns-h2 report__title">举报该物品</view>
+      <view class="report__reasons">
+        <view
+          wx:for="{{['禁售物品','涉嫌虚假','内容违规','其他']}}"
+          wx:key="*this"
+          class="report__reason {{reportReason === item ? 'report__reason--on' : ''}}"
+          data-reason="{{item}}"
+          bindtap="onPickReportReason"
+        >{{item}}</view>
+      </view>
+      <t-textarea value="{{reportDetail}}" placeholder="补充说明（选填）" maxlength="{{300}}" t-class="report__textarea" bind:change="onReportDetail" />
+      <view class="ns-btn ns-btn--primary report__submit {{reportSending ? 'ns-btn--disabled' : ''}}" bindtap="onSubmitReport">提交举报</view>
+    </view>
+  </t-popup>
+</view>

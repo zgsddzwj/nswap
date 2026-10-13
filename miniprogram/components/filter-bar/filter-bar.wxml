@@ -1,0 +1,45 @@
+<view class="fb">
+  <!-- 形态筛选 -->
+  <scroll-view class="fb__row" scroll-x enhanced show-scrollbar="{{false}}">
+    <view class="fb__chips">
+      <view
+        class="fb__chip {{type === '' ? 'fb__chip--on' : ''}}"
+        data-value=""
+        bindtap="onTypeTap"
+      >全部</view>
+      <view
+        wx:for="{{typeChips}}"
+        wx:key="value"
+        class="fb__chip {{type === item.value ? 'fb__chip--on' : ''}}"
+        style="{{type === item.value ? 'color:' + item.color + ';background:var(--ns-card);border-color:' + item.color : ''}}"
+        data-value="{{item.value}}"
+        bindtap="onTypeTap"
+      >{{item.label}}</view>
+    </view>
+  </scroll-view>
+
+  <!-- 分类筛选 + 楼栋 -->
+  <scroll-view class="fb__row" scroll-x enhanced show-scrollbar="{{false}}">
+    <view class="fb__chips">
+      <view
+        class="fb__chip {{category === '' ? 'fb__chip--on' : ''}}"
+        data-value=""
+        bindtap="onCategoryTap"
+      >全部分类</view>
+      <view
+        wx:for="{{categoryChips}}"
+        wx:key="value"
+        class="fb__chip {{category === item.value ? 'fb__chip--on' : ''}}"
+        data-value="{{item.value}}"
+        bindtap="onCategoryTap"
+      >{{item.label}}</view>
+      <view wx:if="{{buildings.length}}" class="fb__divider"></view>
+      <picker wx:if="{{buildings.length}}" range="{{buildings}}" bindchange="onBuildingChange">
+        <view class="fb__chip {{building ? 'fb__chip--on' : ''}}">
+          {{building || '楼栋'}}
+          <t-icon name="chevron-down" size="24rpx" />
+        </view>
+      </picker>
+    </view>
+  </scroll-view>
+</view>

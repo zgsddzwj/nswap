@@ -1,0 +1,40 @@
+.mi__tabs {
+  width: 100%;
+  white-space: nowrap;
+  margin-bottom: 24rpx;
+}
+
+.mi__tab-chips {
+  display: inline-flex;
+  gap: 16rpx;
+  padding: 4rpx 2rpx;
+}
+
+.mi__chip {
+  padding: 12rpx 30rpx;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  color: var(--ns-ink-2);
+  background: var(--ns-card);
+  border: 2rpx solid var(--ns-line);
+}
+
+.mi__chip--on {
+  color: var(--ns-brand);
+  background: var(--ns-brand-light);
+  border-color: var(--ns-brand);
+  font-weight: 600;
+}
+
+.mi__list { min-height: 300rpx; }
+
+.mi__row { margin-bottom: 20rpx; }
+
+.mi__stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14rpx;
+  padding-top: 14rpx;
+  border-top: 2rpx solid var(--ns-line);
+}

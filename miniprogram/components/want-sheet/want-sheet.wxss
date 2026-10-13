@@ -1,0 +1,79 @@
+.ws {
+  background: var(--ns-card);
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 32rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
+}
+
+.ws__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.ws__close {
+  padding: 12rpx;
+  margin: -12rpx;
+  border-radius: 50%;
+}
+
+.ws__close--hover { background: var(--ns-bg); }
+
+.ws__label {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--ns-ink);
+  margin: 24rpx 0 12rpx;
+}
+
+.ws__label-sub {
+  font-weight: 400;
+  font-size: 22rpx;
+  color: var(--ns-ink-3);
+  margin-left: 12rpx;
+}
+
+.ws__textarea {
+  background: var(--ns-bg) !important;
+  border-radius: 16rpx !important;
+  padding: 20rpx !important;
+}
+
+.ws__bid {
+  display: flex;
+  align-items: center;
+  background: var(--ns-bg);
+  border-radius: 16rpx;
+  padding: 0 20rpx;
+  height: 96rpx;
+}
+
+.ws__bid__symbol {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--ns-ink);
+  margin-right: 4rpx;
+}
+
+.ws__bid-input,
+.ws__swap-input {
+  flex: 1;
+  background: transparent !important;
+}
+
+.ws__swap-input {
+  background: var(--ns-bg) !important;
+  border-radius: 16rpx !important;
+  height: 96rpx !important;
+}
+
+.ws__submit {
+  margin-top: 40rpx;
+}
+
+.ws__submit--hover { opacity: 0.85; }
+
+.ws__tip {
+  text-align: center;
+  margin-top: 16rpx;
+}

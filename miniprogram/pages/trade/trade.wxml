@@ -1,0 +1,158 @@
+<view class="ns-page">
+  <block wx:if="{{loading}}">
+    <view class="ns-card">
+      <view class="ns-skeleton" style="height: 32rpx; width: 40%;"></view>
+      <view class="ns-skeleton" style="height: 120rpx; margin-top: 24rpx; border-radius: 16rpx;"></view>
+    </view>
+  </block>
+
+  <block wx:elif="{{t}}">
+    <!-- 状态步进条 -->
+    <view class="ns-card trade__head">
+      <view wx:if="{{cancelled}}" class="trade__cancel-banner" style="color: var(--ns-danger); background: var(--ns-danger-light);">
+        交易已取消{{t.cancel_reason ? '：' + t.cancel_reason : ''}}
+      </view>
+      <block wx:else>
+        <view class="trade__steps">
+          <view class="trade__step">
+            <view class="trade__step-dot {{stepIndex >= 0 ? 'trade__step-dot--on' : ''}}"></view>
+            <text class="trade__step-label {{stepIndex === 0 ? 'trade__step-label--on' : ''}}">约定</text>
+          </view>
+          <view class="trade__step-line {{stepIndex >= 1 ? 'trade__step-line--on' : ''}}"></view>
+          <view class="trade__step">
+            <view class="trade__step-dot {{stepIndex >= 1 ? 'trade__step-dot--on' : ''}}"></view>
+            <text class="trade__step-label {{stepIndex === 1 ? 'trade__step-label--on' : ''}}">交接</text>
+          </view>
+          <view class="trade__step-line {{stepIndex >= 2 ? 'trade__step-line--on' : ''}}"></view>
+          <view class="trade__step">
+            <view class="trade__step-dot {{stepIndex >= 2 ? 'trade__step-dot--on' : ''}}"></view>
+            <text class="trade__step-label {{stepIndex === 2 ? 'trade__step-label--on' : ''}}">完成</text>
+          </view>
+        </view>
+        <view class="ns-hint trade__status-hint">
+          当前状态：{{statusLabel}}{{t.status === 'arranged' && meetTimeText ? ' · ' + meetTimeText : ''}}
+        </view>
+      </block>
+    </view>
+
+    <!-- 物品与对方 -->
+    <view class="ns-card trade__party">
+      <view class="ns-row" hover-class="trade__hover" bindtap="goItem">
+        <image wx:if="{{t.item && t.item.cover}}" class="trade__cover" src="{{t.item.cover}}" mode="aspectFill" />
+        <view wx:else class="trade__cover trade__cover--empty"><t-icon name="image" size="36rpx" color="var(--ns-ink-3)" /></view>
+        <view class="ns-grow">
+          <view class="ns-ellipsis trade__item-title">{{t.item ? t.item.title : '物品已删除'}}</view>
+          <status-badge wx:if="{{t.item}}" kind="item" status="{{t.item.status}}" />
+        </view>
+        <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
+      </view>
+      <view class="trade__divider"></view>
+      <view class="ns-row" hover-class="trade__hover" bindtap="goCounterpart">
+        <image class="trade__avatar" src="{{t.counterpart.avatar_url || '/assets/tabbar/mine.png'}}" mode="aspectFill" />
+        <view class="ns-grow">
+          <view class="trade__cp-name">{{t.counterpart.nickname}}</view>
+          <view class="ns-hint">成交 {{t.counterpart.stats.sell_done + t.counterpart.stats.give_done + t.counterpart.stats.swap_done}} · 好评 {{cpRate}}</view>
+        </view>
+        <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
+      </view>
+    </view>
+
+    <!-- 意向摘要 -->
+    <view wx:if="{{t.want}}" class="ns-card">
+      <view class="ns-sub trade__section-label">邻居的留言</view>
+      <view class="trade__want-msg">{{t.want.message}}</view>
+      <view class="trade__want-tags" wx:if="{{bidInt || t.want.swap_offer}}">
+        <view wx:if="{{bidInt}}" class="trade__tag" style="color: var(--ns-brand); background: var(--ns-brand-light);">出价 ¥{{bidInt}}</view>
+        <view wx:if="{{t.want.swap_offer}}" class="trade__tag" style="color: var(--ns-swap); background: var(--ns-bg);">以「{{t.want.swap_offer}}」交换</view>
+      </view>
+    </view>
+
+    <!-- 约定区 -->
+    <view class="ns-card">
+      <view class="ns-h2">交接约定</view>
+      <view wx:if="{{!canArrange && meetTimeText}}" class="trade__arranged">
+        <view class="trade__arranged-row"><text class="ns-sub">方式</text><text class="trade__arranged-val">{{placeMethodMap[t.place_method] ? placeMethodMap[t.place_method].label : ''}}</text></view>
+        <view class="trade__arranged-row"><text class="ns-sub">时间</text><text class="trade__arranged-val">{{meetTimeText}}</text></view>
+        <view wx:if="{{t.place_note}}" class="trade__arranged-row"><text class="ns-sub">备注</text><text class="trade__arranged-val">{{t.place_note}}</text></view>
+        <view wx:if="{{t.status === 'arranged'}}" class="ns-hint trade__arranged-tip">需要调整可在下方重新保存约定</view>
+      </view>
+
+      <block wx:if="{{canArrange}}">
+        <view class="trade__methods">
+          <view
+            wx:for="{{placeMethods}}"
+            wx:key="*this"
+            class="trade__method {{placeMethod === item ? 'trade__method--on' : ''}}"
+            data-method="{{item}}"
+            bindtap="onPickMethod"
+          >
+            <t-icon name="{{placeMethodMap[item].icon}}" size="40rpx" />
+            <view class="trade__method-label">{{placeMethodMap[item].label}}</view>
+            <view class="trade__method-desc">{{placeMethodMap[item].desc}}</view>
+          </view>
+        </view>
+
+        <view class="trade__pickers">
+          <picker mode="date" value="{{date}}" bindchange="onDate">
+            <view class="trade__picker">
+              <t-icon name="time" size="32rpx" color="var(--ns-ink-2)" />
+              <text class="{{date ? '' : 'trade__ph'}}">{{date || '选日期'}}</text>
+            </view>
+          </picker>
+          <picker mode="time" value="{{time}}" bindchange="onTime">
+            <view class="trade__picker">
+              <t-icon name="time" size="32rpx" color="var(--ns-ink-2)" />
+              <text class="{{time ? '' : 'trade__ph'}}">{{time || '选时间'}}</text>
+            </view>
+          </picker>
+        </view>
+
+        <input class="trade__note" value="{{placeNote}}" placeholder="地点备注（选填），如：3栋东门快递架" maxlength="100" bindinput="onNote" />
+
+        <view class="ns-btn ns-btn--primary trade__save" hover-class="ns-btn--hover" bindtap="onSaveArrange">保存约定</view>
+      </block>
+    </view>
+
+    <!-- 双向确认 -->
+    <view wx:if="{{t.status === 'pending' || t.status === 'arranged'}}" class="ns-card">
+      <view class="ns-h2">双方确认</view>
+      <view class="trade__confirms">
+        <view class="trade__confirm {{t.my_confirmed ? 'trade__confirm--done' : ''}}">
+          <t-icon name="{{t.my_confirmed ? 'check-circle' : 'error-circle'}}" size="36rpx" />
+          <text>{{t.my_confirmed ? '我已确认' : '等我确认'}}</text>
+        </view>
+        <view class="trade__confirm {{t.owner_confirmed && t.other_confirmed ? 'trade__confirm--done' : ''}}">
+          <t-icon name="{{(t.my_role === 'owner' ? t.other_confirmed : t.owner_confirmed) ? 'check-circle' : 'error-circle'}}" size="36rpx" />
+          <text>{{(t.my_role === 'owner' ? t.other_confirmed : t.owner_confirmed) ? '对方已确认' : '等对方确认'}}</text>
+        </view>
+      </view>
+      <view class="ns-btn {{canConfirm ? 'ns-btn--primary' : 'ns-btn--plain'}} {{canConfirm ? '' : 'ns-btn--disabled'}} trade__confirm-btn" hover-class="ns-btn--hover" bindtap="onConfirm">
+        {{t.my_confirmed ? '已确认，等待对方' : '确认完成交换'}}
+      </view>
+      <view class="trade__cancel" hover-class="trade__hover" bindtap="onCancel">取消交易</view>
+    </view>
+
+    <!-- 完成后：评价与感谢 -->
+    <view wx:if="{{t.status === 'completed'}}" class="ns-card">
+      <view class="ns-h2">交换完成</view>
+      <view wx:if="{{t.my_review}}" class="trade__reviewed">
+        <text class="ns-sub">我的评价</text>
+        <view class="trade__review-val">「{{reviewLabels[t.my_review.rating]}}」{{t.my_review.content || ''}}</view>
+      </view>
+      <view wx:else class="ns-btn ns-btn--primary trade__confirm-btn" hover-class="ns-btn--hover" bindtap="goReview">去评价</view>
+
+      <view wx:if="{{t.gratitude}}" class="trade__grat" style="background: var(--ns-brand-soft);">
+        <view class="trade__grat-label" style="color: var(--ns-give);">邻里感谢</view>
+        <view class="trade__grat-text">{{t.gratitude.content}}</view>
+      </view>
+      <view wx:elif="{{isReceiver}}" class="trade__grat" style="background: var(--ns-brand-soft);">
+        <view class="trade__grat-label" style="color: var(--ns-give);">感谢 TA 吧</view>
+        <view class="trade__grat-text">作为收受方，发一条感谢帖会让邻里更有温度</view>
+        <view class="ns-btn ns-btn--soft ns-btn--sm trade__grat-btn" hover-class="ns-btn--hover" bindtap="goReview">去发感谢帖</view>
+      </view>
+    </view>
+
+    <!-- 已取消的出口 -->
+    <view wx:if="{{cancelled}}" class="ns-btn ns-btn--plain trade__confirm-btn" hover-class="ns-btn--hover" bindtap="goMyTrades">看看我的其他交易</view>
+  </block>
+</view>

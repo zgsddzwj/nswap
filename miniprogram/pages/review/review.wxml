@@ -1,0 +1,71 @@
+<view class="ns-page">
+  <block wx:if="{{loading}}">
+    <view class="ns-card">
+      <view class="ns-skeleton" style="height: 32rpx; width: 50%;"></view>
+    </view>
+  </block>
+
+  <block wx:elif="{{t}}">
+    <!-- 交易摘要 -->
+    <view class="ns-card review__summary">
+      <image wx:if="{{t.item && t.item.cover}}" class="review__cover" src="{{t.item.cover}}" mode="aspectFill" />
+      <view class="ns-grow">
+        <view class="ns-ellipsis review__title">{{t.item ? t.item.title : ''}}</view>
+        <view class="ns-sub">与 {{counterpart.nickname}}（{{counterpart.building}}）的交换</view>
+      </view>
+    </view>
+
+    <!-- 第一步：评价 -->
+    <block wx:if="{{step === 'review'}}">
+      <view class="ns-card review__form">
+        <view class="ns-h2">这次交换体验如何？</view>
+        <view class="ns-hint review__form-sub">评价会展示在你的信用档案</view>
+        <view class="review__options">
+          <view
+            wx:for="{{options}}"
+            wx:key="value"
+            class="review__option {{rating === item.value ? 'review__option--on' : ''}}"
+            data-value="{{item.value}}"
+            bindtap="onPickRating"
+          >
+            <t-icon name="{{item.icon}}" size="48rpx" />
+            <view class="review__option-label">{{item.label}}</view>
+            <view class="review__option-desc">{{item.desc}}</view>
+          </view>
+        </view>
+        <t-textarea
+          value="{{content}}"
+          placeholder="想对 TA 说点什么？（选填）"
+          maxlength="{{300}}"
+          indicator
+          t-class="review__textarea"
+          bind:change="onContent"
+        />
+        <view class="ns-btn ns-btn--primary review__submit {{submitting ? 'ns-btn--disabled' : ''}}" hover-class="ns-btn--hover" bindtap="onSubmitReview">提交评价</view>
+      </view>
+    </block>
+
+    <!-- 第二步：感谢帖（仅收受方） -->
+    <block wx:elif="{{step === 'gratitude'}}">
+      <view class="ns-card review__form">
+        <view class="ns-h2">写一条邻里感谢</view>
+        <view class="ns-hint review__form-sub">会出现在社区首页的感谢墙上</view>
+        <t-textarea
+          value="{{gratitudeContent}}"
+          placeholder="例：感谢{{toBuilding}}邻居送的绘本，孩子特别喜欢！"
+          maxlength="{{200}}"
+          indicator
+          t-class="review__textarea"
+          bind:change="onGratitude"
+        />
+        <view class="ns-btn ns-btn--primary review__submit {{gratSending ? 'ns-btn--disabled' : ''}}" hover-class="ns-btn--hover" bindtap="onSubmitGratitude">发布感谢帖</view>
+        <view class="review__skip" hover-class="ns-btn--hover" bindtap="onSkipGratitude">暂时不发</view>
+      </view>
+    </block>
+
+    <!-- 已完成 -->
+    <block wx:else>
+      <empty-state icon="check-circle" text="评价已完成" sub="感谢你让邻里交换更有温度" actionText="返回我的交易" bind:action="backToList" />
+    </block>
+  </block>
+</view>

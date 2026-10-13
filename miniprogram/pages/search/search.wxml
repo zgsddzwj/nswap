@@ -1,0 +1,68 @@
+<view class="ns-page search">
+  <!-- 搜索框 -->
+  <view class="search__bar">
+    <view class="search__field">
+      <t-icon name="search" size="36rpx" color="var(--ns-ink-3)" />
+      <input
+        class="search__input"
+        value="{{keyword}}"
+        placeholder="搜索闲置物品"
+        confirm-type="search"
+        focus
+        bindinput="onInput"
+        bindconfirm="onConfirm"
+      />
+      <view wx:if="{{keyword}}" class="search__clear" hover-class="search__clear--hover" bindtap="onClearHistory">
+        <t-icon name="close" size="28rpx" color="var(--ns-ink-3)" />
+      </view>
+    </view>
+    <view class="search__btn" hover-class="search__btn--hover" bindtap="onConfirm">搜索</view>
+  </view>
+
+  <!-- 历史 -->
+  <block wx:if="{{!searched}}">
+    <view wx:if="{{history.length}}" class="search__section">
+      <view class="ns-row search__section-head">
+        <text class="ns-sub">最近搜索</text>
+        <t-icon name="delete" size="32rpx" color="var(--ns-ink-3)" bindtap="onClearHistory" />
+      </view>
+      <view class="search__chips">
+        <view
+          wx:for="{{history}}"
+          wx:key="*this"
+          class="search__chip"
+          hover-class="search__chip--hover"
+          data-kw="{{item}}"
+          bindtap="onHistoryTap"
+        >{{item}}</view>
+      </view>
+    </view>
+    <empty-state wx:else icon="search" text="搜搜邻居的闲置好物" sub="比如：推车、绘本、滑板车" />
+  </block>
+
+  <!-- 结果 -->
+  <block wx:else>
+    <view wx:if="{{items.length}}" class="search__grid">
+      <view class="search__cell" wx:for="{{items}}" wx:key="id">
+        <item-card item="{{item}}" mode="grid" />
+      </view>
+    </view>
+
+    <view wx:if="{{firstLoading}}" class="search__grid">
+      <view class="search__cell" wx:for="{{[0,1,2,3]}}" wx:key="*this">
+        <view class="home__skeleton" style="background: var(--ns-card); border-radius: 20rpx; padding: 20rpx;">
+          <view class="ns-skeleton" style="width: 100%; padding-top: 100%; border-radius: 16rpx;"></view>
+        </view>
+      </view>
+    </view>
+
+    <empty-state
+      wx:if="{{!firstLoading && !items.length}}"
+      icon="search"
+      text="没找到相关闲置"
+      sub="换个关键词试试"
+    />
+
+    <view wx:if="{{finished && items.length}}" class="ns-list-footer">没有更多了</view>
+  </block>
+</view>

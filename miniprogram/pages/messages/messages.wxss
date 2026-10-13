@@ -1,0 +1,125 @@
+.messages {
+  min-height: 100vh;
+}
+
+.messages__tabs {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  background: var(--ns-bg);
+  padding: 16rpx 24rpx 0;
+}
+
+.messages__tab {
+  position: relative;
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 30rpx;
+  color: var(--ns-ink-2);
+}
+
+.messages__tab--on {
+  color: var(--ns-ink);
+  font-weight: 700;
+}
+
+.messages__tab-line {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 6rpx;
+  width: 48rpx;
+  height: 8rpx;
+  border-radius: 8rpx;
+  background: var(--ns-brand);
+}
+
+.messages__body { padding: 24rpx; }
+
+.messages__readall {
+  text-align: right;
+  padding: 0 8rpx 16rpx;
+  font-size: 24rpx;
+  color: var(--ns-brand);
+}
+
+.messages__readall--hover { opacity: 0.7; }
+
+.messages__row--hover { opacity: 0.85; }
+
+/* 通知 */
+.messages__notify {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+  padding: 28rpx 24rpx;
+}
+
+.messages__notify-icon {
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.messages__notify-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--ns-ink-2);
+}
+
+.messages__notify-title--unread {
+  font-weight: 700;
+  color: var(--ns-ink);
+}
+
+.messages__dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: var(--ns-danger);
+  margin-left: 12rpx;
+}
+
+.messages__notify-content { margin-top: 6rpx; }
+
+.messages__time { flex-shrink: 0; }
+
+/* 会话 */
+.messages__conv {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+  padding: 24rpx;
+}
+
+.messages__conv-item {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 16rpx;
+  background: var(--ns-brand-soft);
+  flex-shrink: 0;
+}
+
+.messages__conv-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--ns-ink);
+  margin-right: 12rpx;
+}
+
+.messages__conv-last { margin-top: 6rpx; }
+
+.messages__conv-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}

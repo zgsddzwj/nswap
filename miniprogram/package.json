@@ -1,0 +1,17 @@
+{
+  "name": "nswap-miniprogram",
+  "version": "1.0.0",
+  "private": true,
+  "description": "nswap 社区闲置交换小程序前端（原生小程序 + TypeScript + TDesign）",
+  "scripts": {
+    "build:td": "node -e \"const fs=require('fs');fs.cpSync('node_modules/tdesign-miniprogram/miniprogram_dist','miniprogram_npm/tdesign-miniprogram',{recursive:true});console.log('miniprogram_npm/tdesign-miniprogram 已构建')\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "tdesign-miniprogram": "^1.7.0"
+  },
+  "devDependencies": {
+    "miniprogram-api-typings": "^3.12.1",
+    "typescript": "^5.5.4"
+  }
+}

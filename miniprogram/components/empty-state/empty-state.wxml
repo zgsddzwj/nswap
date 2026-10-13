@@ -1,0 +1,13 @@
+<view class="es">
+  <view class="es__icon">
+    <t-icon name="{{icon}}" size="64rpx" color="var(--ns-ink-3)" />
+  </view>
+  <view class="es__text">{{text}}</view>
+  <view wx:if="{{sub}}" class="es__sub">{{sub}}</view>
+  <view
+    wx:if="{{actionText}}"
+    class="es__action"
+    hover-class="es__action--hover"
+    bindtap="onAction"
+  >{{actionText}}</view>
+</view>

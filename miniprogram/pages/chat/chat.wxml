@@ -1,0 +1,45 @@
+<view class="chat">
+  <!-- 顶部物品卡 -->
+  <view wx:if="{{item}}" class="chat__item" hover-class="chat__item--hover" bindtap="goItem">
+    <image wx:if="{{item.cover}}" class="chat__item-cover" src="{{item.cover}}" mode="aspectFill" />
+    <view wx:else class="chat__item-cover chat__item-cover--empty">
+      <t-icon name="image" size="36rpx" color="var(--ns-ink-3)" />
+    </view>
+    <view class="ns-grow">
+      <view class="ns-ellipsis chat__item-title">{{item.title}}</view>
+      <status-badge kind="item" status="{{item.status}}" />
+    </view>
+    <view wx:if="{{tradeId}}" class="chat__arrange" hover-class="chat__arrange--hover" catchtap="goTrade">去约定</view>
+  </view>
+
+  <!-- 消息列表 -->
+  <scroll-view class="chat__list" scroll-y scroll-into-view="{{scrollInto}}" scroll-with-animation enhanced show-scrollbar="{{false}}">
+    <view wx:if="{{!loading && !messages.length}}" class="chat__empty">
+      <view class="chat__empty-main">和邻居打个招呼吧</view>
+      <view class="chat__empty-sub">约好时间地点，当面交接</view>
+    </view>
+
+    <view wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}" class="chat__msg-wrap {{item.mine ? 'chat__msg-wrap--mine' : ''}}">
+      <view wx:if="{{item.showTime}}" class="chat__time">{{item.timeText}}</view>
+      <view class="chat__msg {{item.mine ? 'chat__msg--mine' : ''}}">
+        {{item.content}}
+      </view>
+    </view>
+
+    <view class="chat__bottom-space"></view>
+  </scroll-view>
+
+  <!-- 输入栏 -->
+  <view class="chat__input-bar">
+    <input
+      class="chat__input"
+      value="{{input}}"
+      placeholder="友善沟通，约好交接细节"
+      confirm-type="send"
+      confirm-hold
+      bindinput="onInput"
+      bindconfirm="onSend"
+    />
+    <view class="chat__send {{input && !sending ? '' : 'chat__send--off'}}" hover-class="chat__send--hover" bindtap="onSend">发送</view>
+  </view>
+</view>

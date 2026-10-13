@@ -1,0 +1,69 @@
+<!-- 网格模式 -->
+<view wx:if="{{mode === 'grid'}}" class="ic" hover-class="ic--hover" bindtap="goDetail">
+  <view class="ic__cover-wrap">
+    <image
+      wx:if="{{item.cover}}"
+      class="ic__cover {{dimmed ? 'ic__cover--dim' : ''}}"
+      src="{{item.cover}}"
+      mode="aspectFill"
+      lazy-load="{{true}}"
+    />
+    <view wx:else class="ic__cover ic__cover--empty">
+      <t-icon name="image" size="56rpx" color="var(--ns-ink-3)" />
+    </view>
+    <view class="ic__type" style="background: {{typeMeta.color}};">{{typeMeta.label}}</view>
+    <view wx:if="{{showStatus}}" class="ic__status">
+      <status-badge kind="item" status="{{item.status}}" />
+    </view>
+  </view>
+  <view class="ic__body">
+    <view class="ic__title ns-ellipsis-2">{{item.title}}</view>
+    <view class="ic__price-row">
+      <view wx:if="{{showPrice}}" class="ns-price">
+        <text class="ns-price__symbol">¥</text>
+        <text class="ns-price__int">{{priceInt}}</text>
+        <text wx:if="{{priceDec}}" class="ns-price__dec">{{priceDec}}</text>
+      </view>
+      <view wx:if="{{showPrice && item.negotiable}}" class="ic__tag" style="color: var(--ns-brand); background: var(--ns-brand-light);">可小刀</view>
+      <view wx:elif="{{showGive}}" class="ic__big-label" style="color: var(--ns-give);">免费送</view>
+      <view wx:elif="{{showSwap}}" class="ic__big-label" style="color: var(--ns-swap);">可交换</view>
+      <view wx:elif="{{showWant}}" class="ic__big-label" style="color: var(--ns-want);">求购中</view>
+    </view>
+    <view class="ic__meta ns-ellipsis">{{metaText}}</view>
+  </view>
+</view>
+
+<!-- 行模式 -->
+<view wx:else class="ic-row" hover-class="ic-row--hover" bindtap="goDetail">
+  <view class="ic-row__cover-wrap">
+    <image
+      wx:if="{{item.cover}}"
+      class="ic-row__cover {{dimmed ? 'ic__cover--dim' : ''}}"
+      src="{{item.cover}}"
+      mode="aspectFill"
+      lazy-load="{{true}}"
+    />
+    <view wx:else class="ic-row__cover ic__cover--empty">
+      <t-icon name="image" size="48rpx" color="var(--ns-ink-3)" />
+    </view>
+  </view>
+  <view class="ic-row__body">
+    <view class="ic-row__first">
+      <view class="ic-row__title ns-ellipsis">{{item.title}}</view>
+      <status-badge wx:if="{{showStatus}}" kind="item" status="{{item.status}}" />
+    </view>
+    <view class="ic-row__price-row">
+      <view wx:if="{{showPrice}}" class="ns-price">
+        <text class="ns-price__symbol">¥</text>
+        <text class="ns-price__int">{{priceInt}}</text>
+        <text wx:if="{{priceDec}}" class="ns-price__dec">{{priceDec}}</text>
+      </view>
+      <view wx:if="{{showPrice && item.negotiable}}" class="ic__tag" style="color: var(--ns-brand); background: var(--ns-brand-light);">可小刀</view>
+      <view wx:elif="{{showGive}}" class="ic__big-label ic__big-label--sm" style="color: var(--ns-give);">免费送</view>
+      <view wx:elif="{{showSwap}}" class="ic__big-label ic__big-label--sm" style="color: var(--ns-swap);">可交换</view>
+      <view wx:elif="{{showWant}}" class="ic__big-label ic__big-label--sm" style="color: var(--ns-want);">求购中</view>
+    </view>
+    <view class="ic__meta ns-ellipsis">{{metaText}}</view>
+    <slot></slot>
+  </view>
+</view>

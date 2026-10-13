@@ -1,0 +1,69 @@
+<view class="messages">
+  <!-- 顶部分段切换 -->
+  <view class="messages__tabs">
+    <view class="messages__tab {{tab === 'notify' ? 'messages__tab--on' : ''}}" data-tab="notify" bindtap="switchTab">
+      通知
+      <view wx:if="{{tab === 'notify'}}" class="messages__tab-line"></view>
+    </view>
+    <view class="messages__tab {{tab === 'chat' ? 'messages__tab--on' : ''}}" data-tab="chat" bindtap="switchTab">
+      会话
+      <view wx:if="{{tab === 'chat'}}" class="messages__tab-line"></view>
+    </view>
+  </view>
+
+  <!-- 通知列表 -->
+  <view wx:if="{{tab === 'notify'}}" class="messages__body">
+    <view wx:if="{{notifications.length}}" class="messages__readall" hover-class="messages__readall--hover" bindtap="onReadAll">全部已读</view>
+    <view
+      wx:for="{{notifications}}"
+      wx:key="id"
+      class="ns-card messages__notify {{item.read ? '' : 'messages__notify--unread'}}"
+      data-index="{{index}}"
+      hover-class="messages__row--hover"
+      bindtap="onNotifyTap"
+    >
+      <view class="messages__notify-icon" style="background: var(--ns-brand-soft);">
+        <t-icon name="{{item.icon}}" size="40rpx" color="{{item.color}}" />
+      </view>
+      <view class="ns-grow">
+        <view class="ns-row">
+          <text class="messages__notify-title {{item.read ? '' : 'messages__notify-title--unread'}}">{{item.title}}</text>
+          <view wx:if="{{!item.read}}" class="messages__dot"></view>
+        </view>
+        <view class="ns-sub messages__notify-content ns-ellipsis">{{item.content}}</view>
+      </view>
+      <text class="ns-hint messages__time">{{item.timeText}}</text>
+    </view>
+
+    <empty-state wx:if="{{!notifications.length}}" icon="notification" text="还没有通知" sub="有邻居对你的物品感兴趣时会提醒你" />
+    <view wx:if="{{notifyFinished && notifications.length}}" class="ns-list-footer">没有更多了</view>
+  </view>
+
+  <!-- 会话列表 -->
+  <view wx:else class="messages__body">
+    <view
+      wx:for="{{conversations}}"
+      wx:key="id"
+      class="ns-card messages__conv"
+      data-id="{{item.id}}"
+      hover-class="messages__row--hover"
+      bindtap="onConvTap"
+    >
+      <image class="messages__conv-item" src="{{item.item.cover || '/assets/tabbar/home.png'}}" mode="aspectFill" />
+      <view class="ns-grow">
+        <view class="ns-row">
+          <text class="messages__conv-name">{{item.counterpart.nickname}}</text>
+          <text class="ns-hint">{{item.counterpart.building}}</text>
+        </view>
+        <view class="ns-sub messages__conv-last ns-ellipsis">
+          {{item.last_message ? item.last_message.content : '开始对话吧'}}
+        </view>
+      </view>
+      <view class="messages__conv-right">
+        <text class="ns-hint">{{item.timeText}}</text>
+      </view>
+    </view>
+
+    <empty-state wx:if="{{!conversations.length}}" icon="chat" text="还没有会话" sub="意向被接受后，就可以和邻居约交换了" actionText="去逛逛" bind:action="goHome" />
+  </view>
+</view>

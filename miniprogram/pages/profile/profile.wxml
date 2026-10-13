@@ -1,0 +1,74 @@
+<view class="ns-page">
+  <block wx:if="{{loading}}">
+    <view class="ns-card profile__card">
+      <view class="ns-row">
+        <view class="ns-skeleton profile__avatar"></view>
+        <view class="ns-grow">
+          <view class="ns-skeleton profile__line"></view>
+          <view class="ns-skeleton profile__line profile__line--short"></view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <empty-state
+    wx:elif="{{loadError}}"
+    icon="error-circle"
+    text="加载失败"
+    actionText="重新加载"
+    bind:action="onRetry"
+  />
+
+  <block wx:else>
+    <!-- 用户卡片 -->
+    <view class="ns-card profile__card">
+      <view class="ns-row">
+        <image class="profile__avatar" src="{{user.avatar_url || '/assets/tabbar/mine.png'}}" mode="aspectFill" />
+        <view class="ns-grow">
+          <view class="ns-row">
+            <text class="ns-h2">{{user.nickname}}</text>
+            <view wx:if="{{user.verified}}" class="profile__badge" style="color: var(--ns-brand); background: var(--ns-brand-light);">{{user.building}} · 已验证邻居</view>
+          </view>
+          <view class="ns-hint profile__joined">{{joined}} 加入</view>
+        </view>
+      </view>
+
+      <!-- 信用档案：只展示客观数据 -->
+      <view class="profile__stats">
+        <view class="profile__stat">
+          <view class="profile__stat-num">{{user.stats.give_done}}</view>
+          <view class="profile__stat-label">送出</view>
+        </view>
+        <view class="profile__stat">
+          <view class="profile__stat-num">{{user.stats.swap_done}}</view>
+          <view class="profile__stat-label">换成</view>
+        </view>
+        <view class="profile__stat">
+          <view class="profile__stat-num">{{user.stats.sell_done}}</view>
+          <view class="profile__stat-label">卖出</view>
+        </view>
+        <view class="profile__stat">
+          <view class="profile__stat-num">{{rate}}</view>
+          <view class="profile__stat-label">好评</view>
+        </view>
+        <view class="profile__stat">
+          <view class="profile__stat-num">{{user.stats.thanks_count}}</view>
+          <view class="profile__stat-label">被感谢</view>
+        </view>
+        <view class="profile__stat">
+          <view class="profile__stat-num {{user.stats.violations ? 'profile__stat-num--warn' : ''}}">{{user.stats.violations}}</view>
+          <view class="profile__stat-label">爽约</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 在架物品 -->
+    <view class="profile__section-title">TA 的在架物品</view>
+    <view wx:if="{{items.length}}" class="profile__grid">
+      <view class="profile__cell" wx:for="{{items}}" wx:key="id">
+        <item-card item="{{item}}" mode="grid" />
+      </view>
+    </view>
+    <empty-state wx:else icon="shop" text="TA 还没有在架的物品" />
+  </block>
+</view>

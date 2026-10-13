@@ -1,0 +1,131 @@
+<view class="ns-page">
+  <block wx:if="{{me}}">
+    <!-- 用户卡 -->
+    <view class="ns-card mine__card">
+      <view class="ns-row">
+        <image class="mine__avatar" src="{{me.user.avatar_url || '/assets/tabbar/mine.png'}}" mode="aspectFill" bindtap="goMyProfile" />
+        <view class="ns-grow" bindtap="goMyProfile">
+          <view class="mine__name">{{me.user.nickname}}</view>
+          <view class="ns-row mine__badges">
+            <view wx:if="{{me.user.verified}}" class="mine__badge" style="color: var(--ns-brand); background: var(--ns-brand-light);">{{me.user.building}}{{me.user.unit ? ' · ' + me.user.unit : ''}}</view>
+            <view wx:else class="mine__badge" style="color: var(--ns-warning); background: var(--ns-warning-light);" bindtap="goVerify">未验证</view>
+            <view wx:if="{{me.community}}" class="mine__badge mine__badge--plain">{{me.community.name}}</view>
+          </view>
+        </view>
+        <view class="mine__edit" hover-class="mine__edit--hover" bindtap="openEdit">
+          <t-icon name="edit" size="36rpx" color="var(--ns-ink-2)" />
+        </view>
+      </view>
+
+      <!-- 信用档案（客观数据） -->
+      <view class="mine__stats" bindtap="goMyProfile">
+        <view class="mine__stat">
+          <view class="mine__stat-num">{{me.user.stats.give_done}}</view>
+          <view class="mine__stat-label">送出</view>
+        </view>
+        <view class="mine__stat">
+          <view class="mine__stat-num">{{me.user.stats.swap_done}}</view>
+          <view class="mine__stat-label">换成</view>
+        </view>
+        <view class="mine__stat">
+          <view class="mine__stat-num">{{me.user.stats.sell_done}}</view>
+          <view class="mine__stat-label">卖出</view>
+        </view>
+        <view class="mine__stat">
+          <view class="mine__stat-num">{{rate}}</view>
+          <view class="mine__stat-label">好评</view>
+        </view>
+        <view class="mine__stat">
+          <view class="mine__stat-num">{{me.user.stats.thanks_count}}</view>
+          <view class="mine__stat-label">被感谢</view>
+        </view>
+        <view class="mine__stat">
+          <view class="mine__stat-num {{me.user.stats.violations ? 'mine__stat-num--warn' : ''}}">{{me.user.stats.violations}}</view>
+          <view class="mine__stat-label">爽约</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 功能入口 -->
+    <view class="ns-card mine__menu">
+      <view class="ns-cell mine__cell" hover-class="ns-cell--hover" data-url="/pages/my-items/my-items" bindtap="go">
+        <view class="ns-cell__hd"><t-icon name="shop" size="40rpx" color="var(--ns-brand)" /></view>
+        <view class="ns-cell__bd">我的发布</view>
+        <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
+      </view>
+      <view class="ns-cell mine__cell" hover-class="ns-cell--hover" data-url="/pages/favorites/favorites" bindtap="go">
+        <view class="ns-cell__hd"><t-icon name="heart" size="40rpx" color="var(--ns-give)" /></view>
+        <view class="ns-cell__bd">我的收藏</view>
+        <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
+      </view>
+      <view class="ns-cell mine__cell" hover-class="ns-cell--hover" data-url="/pages/my-trades/my-trades" bindtap="go">
+        <view class="ns-cell__hd"><t-icon name="gift" size="40rpx" color="var(--ns-swap)" /></view>
+        <view class="ns-cell__bd">我的交易</view>
+        <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
+      </view>
+      <view wx:if="{{!me.user.verified}}" class="ns-cell mine__cell" hover-class="ns-cell--hover" bindtap="goVerify">
+        <view class="ns-cell__hd"><t-icon name="notification" size="40rpx" color="var(--ns-want)" /></view>
+        <view class="ns-cell__bd">小区验证</view>
+        <view class="ns-cell__ft" style="color: var(--ns-warning);">未完成</view>
+        <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
+      </view>
+    </view>
+
+    <!-- 管理员 -->
+    <view wx:if="{{isAdmin}}" class="ns-card mine__menu">
+      <view class="ns-cell mine__cell" hover-class="ns-cell--hover" bindtap="copyAdmin">
+        <view class="ns-cell__hd"><t-icon name="setting" size="40rpx" color="var(--ns-ink-2)" /></view>
+        <view class="ns-cell__bd">管理后台</view>
+        <view class="ns-cell__ft">复制链接</view>
+        <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
+      </view>
+    </view>
+
+    <!-- 协议 -->
+    <view class="ns-card mine__menu">
+      <view class="ns-cell mine__cell" hover-class="ns-cell--hover" data-url="/pages/agreement/agreement?type=user" bindtap="go">
+        <view class="ns-cell__bd">用户协议</view>
+        <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
+      </view>
+      <view class="ns-cell mine__cell" hover-class="ns-cell--hover" data-url="/pages/agreement/agreement?type=privacy" bindtap="go">
+        <view class="ns-cell__bd">隐私政策</view>
+        <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
+      </view>
+    </view>
+
+    <!-- 开发者身份切换（仅本地开发） -->
+    <view wx:if="{{localDev}}" class="ns-card mine__menu">
+      <picker range="{{identities}}" bindchange="onIdentityChange">
+        <view class="ns-cell mine__cell" hover-class="ns-cell--hover">
+          <view class="ns-cell__hd"><t-icon name="user" size="40rpx" color="var(--ns-ink-2)" /></view>
+          <view class="ns-cell__bd">
+            开发者身份
+            <text class="ns-hint" style="margin-left: 12rpx;">{{currentIdentity}}</text>
+          </view>
+          <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
+        </view>
+      </picker>
+    </view>
+
+    <view class="ns-hint mine__version">nswap · 邻里闲置交换</view>
+  </block>
+</view>
+
+<!-- 资料编辑弹层 -->
+<t-popup visible="{{showEdit}}" placement="bottom" bind:visible-change="onVisibleChangeEdit">
+  <view class="edit-sheet">
+    <view class="ns-h2 edit-sheet__title">编辑资料</view>
+
+    <button class="edit-sheet__avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+      <image class="edit-sheet__avatar" src="{{avatarTemp || (me ? me.user.avatar_url : '') || '/assets/tabbar/mine.png'}}" mode="aspectFill" />
+      <view class="edit-sheet__avatar-tip">点击更换头像</view>
+    </button>
+
+    <view class="edit-sheet__label">昵称</view>
+    <input class="edit-sheet__input" type="nickname" value="{{editNickname}}" placeholder="邻里间怎么称呼你" bindinput="onNickname" />
+    <view class="edit-sheet__label">单元（选填）</view>
+    <input class="edit-sheet__input" value="{{editUnit}}" placeholder="如 2单元" maxlength="20" bindinput="onUnit" />
+
+    <view class="ns-btn ns-btn--primary edit-sheet__save {{saving ? 'ns-btn--disabled' : ''}}" hover-class="ns-btn--hover" bindtap="onSaveProfile">保存</view>
+  </view>
+</t-popup>

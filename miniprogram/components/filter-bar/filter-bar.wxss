@@ -1,0 +1,43 @@
+.fb {
+  background: var(--ns-bg);
+  padding: 8rpx 24rpx 12rpx;
+}
+
+.fb__row {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.fb__chips {
+  display: inline-flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 8rpx 0;
+}
+
+.fb__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4rpx;
+  padding: 8rpx 26rpx;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  color: var(--ns-ink-2);
+  background: var(--ns-card);
+  border: 2rpx solid var(--ns-line);
+  transition: all 0.15s ease;
+}
+
+.fb__chip--on {
+  color: var(--ns-brand);
+  background: var(--ns-brand-light);
+  border-color: var(--ns-brand-light);
+  font-weight: 600;
+}
+
+.fb__divider {
+  width: 2rpx;
+  height: 32rpx;
+  background: var(--ns-line);
+  margin: 0 4rpx;
+}

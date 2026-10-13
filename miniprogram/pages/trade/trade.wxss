@@ -1,0 +1,284 @@
+.trade__head { padding-bottom: 20rpx; }
+
+.trade__cancel-banner {
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+/* 步进条 */
+.trade__steps {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 8rpx 8rpx;
+}
+
+.trade__step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.trade__step-dot {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  background: var(--ns-line);
+}
+
+.trade__step-dot--on { background: var(--ns-brand); }
+
+.trade__step-label {
+  font-size: 24rpx;
+  color: var(--ns-ink-3);
+}
+
+.trade__step-label--on {
+  color: var(--ns-brand);
+  font-weight: 600;
+}
+
+.trade__step-line {
+  flex: 1;
+  height: 4rpx;
+  border-radius: 4rpx;
+  background: var(--ns-line);
+  margin: 0 16rpx 28rpx;
+}
+
+.trade__step-line--on { background: var(--ns-brand); }
+
+.trade__status-hint { text-align: center; }
+
+/* 物品与对方 */
+.trade__party { margin-top: 24rpx; padding: 8rpx 24rpx; }
+
+.trade__hover { opacity: 0.85; }
+
+.trade__cover {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 16rpx;
+  background: var(--ns-brand-soft);
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.trade__cover--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trade__item-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--ns-ink);
+  margin-bottom: 8rpx;
+}
+
+.trade__divider {
+  height: 2rpx;
+  background: var(--ns-line);
+  margin: 8rpx 0;
+}
+
+.trade__avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: var(--ns-brand-soft);
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.trade__cp-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--ns-ink);
+}
+
+/* 意向摘要 */
+.trade__section-label { margin-bottom: 12rpx; }
+
+.trade__want-msg {
+  font-size: 27rpx;
+  color: var(--ns-ink);
+  line-height: 1.6;
+}
+
+.trade__want-tags {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.trade__tag {
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+}
+
+/* 约定 */
+.trade__arranged {
+  margin-top: 20rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  background: var(--ns-bg);
+}
+
+.trade__arranged-row {
+  display: flex;
+  gap: 24rpx;
+  padding: 6rpx 0;
+}
+
+.trade__arranged-val {
+  flex: 1;
+  font-size: 26rpx;
+  color: var(--ns-ink);
+}
+
+.trade__arranged-tip { margin-top: 12rpx; }
+
+.trade__methods {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.trade__method {
+  flex: 1;
+  padding: 24rpx 16rpx;
+  border-radius: 16rpx;
+  background: var(--ns-bg);
+  border: 2rpx solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  color: var(--ns-ink-2);
+  box-sizing: border-box;
+}
+
+.trade__method--on {
+  background: var(--ns-brand-light);
+  border-color: var(--ns-brand);
+  color: var(--ns-brand);
+}
+
+.trade__method-label {
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.trade__method-desc {
+  font-size: 20rpx;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.trade__pickers {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
+.trade__picker {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  height: 88rpx;
+  padding: 0 24rpx;
+  border-radius: 16rpx;
+  background: var(--ns-bg);
+  font-size: 28rpx;
+  color: var(--ns-ink);
+}
+
+.trade__ph { color: var(--ns-ink-3); }
+
+.trade__note {
+  margin-top: 16rpx;
+  height: 88rpx;
+  padding: 0 24rpx;
+  border-radius: 16rpx;
+  background: var(--ns-bg);
+  font-size: 28rpx;
+  color: var(--ns-ink);
+}
+
+.trade__save { margin-top: 24rpx; }
+
+/* 确认 */
+.trade__confirms {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 24rpx;
+}
+
+.trade__confirm {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  height: 88rpx;
+  border-radius: 16rpx;
+  background: var(--ns-bg);
+  color: var(--ns-ink-2);
+  font-size: 26rpx;
+}
+
+.trade__confirm--done {
+  background: var(--ns-success-light);
+  color: var(--ns-success);
+  font-weight: 600;
+}
+
+.trade__confirm-btn { margin-top: 24rpx; }
+
+.trade__cancel {
+  margin-top: 20rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: var(--ns-danger);
+}
+
+/* 完成后 */
+.trade__reviewed {
+  margin-top: 16rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  background: var(--ns-bg);
+}
+
+.trade__review-val {
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: var(--ns-ink);
+}
+
+.trade__grat {
+  margin-top: 24rpx;
+  padding: 24rpx;
+  border-radius: 16rpx;
+}
+
+.trade__grat-label {
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.trade__grat-text {
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: var(--ns-ink);
+  line-height: 1.6;
+}
+
+.trade__grat-btn { margin-top: 16rpx; }

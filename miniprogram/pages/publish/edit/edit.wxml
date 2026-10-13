@@ -1,0 +1,140 @@
+<view class="ns-page edit">
+  <!-- 图片 -->
+  <view class="ns-form-section">
+    <view class="ns-form-label {{type !== 'want' ? 'ns-form-label--required' : ''}}">
+      图片
+      <text wx:if="{{type === 'want'}}" class="ns-hint" style="margin-left: 12rpx;">求购帖可不配图</text>
+    </view>
+    <view class="edit__images">
+      <view wx:for="{{images}}" wx:key="*this" class="edit__thumb">
+        <image src="{{item}}" mode="aspectFill" class="edit__thumb-img" data-src="{{item}}" bindtap="onPreviewImage" />
+        <view class="edit__thumb-del" data-index="{{index}}" catchtap="onDeleteImage">
+          <t-icon name="close" size="24rpx" color="#FFFFFF" />
+        </view>
+      </view>
+      <view wx:if="{{images.length < 9}}" class="edit__add" hover-class="edit__add--hover" bindtap="onAddImage">
+        <block wx:if="{{uploading}}">
+          <t-loading theme="circular" size="40rpx" text="{{uploadProgress}}" />
+        </block>
+        <block wx:else>
+          <t-icon name="camera" size="48rpx" color="var(--ns-ink-3)" />
+          <text class="edit__add-text">{{images.length}}/9</text>
+        </block>
+      </view>
+    </view>
+  </view>
+
+  <!-- 标题 -->
+  <view class="ns-form-section">
+    <view class="edit__field">
+      <input
+        class="edit__input"
+        value="{{title}}"
+        placeholder="{{type === 'want' ? '想要什么？一句话说清' : '一句话说清这是什么'}}"
+        maxlength="30"
+        bindinput="onTitle"
+      />
+      <text class="ns-hint">{{title.length}}/30</text>
+    </view>
+    <view class="edit__divider"></view>
+    <view class="edit__field" bindtap="openCategory">
+      <text class="edit__field-name {{category ? '' : 'edit__field-name--ph'}}">{{categoryLabel || '选择分类'}}</text>
+      <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
+    </view>
+  </view>
+
+  <!-- 成色（出售/换物） -->
+  <view wx:if="{{type === 'sell' || type === 'swap'}}" class="ns-form-section">
+    <view class="ns-form-label ns-form-label--required">成色</view>
+    <view class="edit__pills">
+      <view
+        wx:for="{{conditions}}"
+        wx:key="*this"
+        class="edit__pill {{condition === item ? 'edit__pill--on' : ''}}"
+        data-value="{{item}}"
+        bindtap="onPickCondition"
+      >{{conditionLabels[item]}}</view>
+    </view>
+  </view>
+
+  <!-- 参考价（出售） -->
+  <view wx:if="{{type === 'sell'}}" class="ns-form-section">
+    <view class="ns-form-label ns-form-label--required">参考价</view>
+    <view class="edit__price">
+      <text class="edit__price-symbol">¥</text>
+      <input class="edit__price-input" value="{{priceYuan}}" type="digit" placeholder="0.00" bindinput="onPrice" />
+      <text class="ns-hint">元</text>
+    </view>
+    <view class="edit__switch-row">
+      <view>
+        <view class="edit__switch-title">可以小刀</view>
+        <view class="ns-hint">接受邻居合理议价</view>
+      </view>
+      <t-switch value="{{negotiable}}" bind:change="onNegotiable" />
+    </view>
+  </view>
+
+  <!-- 想换/想要 -->
+  <view wx:if="{{type === 'swap' || type === 'want'}}" class="ns-form-section">
+    <view class="ns-form-label ns-form-label--required">{{type === 'swap' ? '想换什么' : '想要什么'}}</view>
+    <t-textarea
+      value="{{wantDesc}}"
+      placeholder="{{type === 'swap' ? '例：想换绘本或滑轮鞋' : '例：找一辆 3 岁宝宝用的平衡车'}}"
+      maxlength="{{200}}"
+      indicator
+      t-class="edit__textarea"
+      bind:change="onWantDesc"
+    />
+  </view>
+
+  <!-- 出价预算（求购） -->
+  <view wx:if="{{type === 'want'}}" class="ns-form-section">
+    <view class="ns-form-label">出价预算<text class="ns-hint" style="margin-left: 12rpx;">选填</text></view>
+    <view class="edit__price">
+      <text class="edit__price-symbol">¥</text>
+      <input class="edit__price-input" value="{{bidYuan}}" type="digit" placeholder="0.00" bindinput="onBid" />
+      <text class="ns-hint">元</text>
+    </view>
+  </view>
+
+  <!-- 描述 -->
+  <view class="ns-form-section">
+    <view class="ns-form-label ns-form-label--required">描述</view>
+    <t-textarea
+      value="{{description}}"
+      placeholder="{{type === 'give' ? '物品在哪里自取、有什么小瑕疵，写清楚更容易送出去' : '使用时长、瑕疵、为什么出闲置…诚实描述更容易促成'}}"
+      maxlength="{{1000}}"
+      indicator
+      t-class="edit__textarea"
+      bind:change="onDescription"
+    />
+  </view>
+
+  <view class="ns-footer-bar__holder"></view>
+
+  <!-- 提交 -->
+  <view class="ns-footer-bar">
+    <view class="ns-grow ns-btn ns-btn--primary {{submitting || uploading ? 'ns-btn--disabled' : ''}}" hover-class="ns-btn--hover" bindtap="onSubmit">
+      {{editId ? '保存修改' : '发布'}}
+    </view>
+  </view>
+
+  <!-- 分类弹层 -->
+  <t-popup visible="{{showCategory}}" placement="bottom" bind:visible-change="closeCategory">
+    <view class="edit__cat">
+      <view class="ns-h2 edit__cat-title">选择分类</view>
+      <view class="edit__cat-grid">
+        <view
+          wx:for="{{categories}}"
+          wx:key="value"
+          class="edit__cat-item {{category === item.value ? 'edit__cat-item--on' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="onPickCategory"
+        >
+          <view class="edit__cat-dot" style="background: {{item.color}};"></view>
+          {{item.label}}
+        </view>
+      </view>
+    </view>
+  </t-popup>
+</view>

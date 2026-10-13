@@ -1,0 +1,130 @@
+.home {
+  min-height: 100vh;
+  padding-bottom: 40rpx;
+}
+
+/* 搜索框 */
+.home__search {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  height: 76rpx;
+  margin: 20rpx 24rpx 0;
+  padding: 0 28rpx;
+  border-radius: 999rpx;
+  background: var(--ns-card);
+  box-shadow: var(--ns-shadow-card);
+}
+
+.home__search--hover { opacity: 0.9; }
+
+.home__search-placeholder {
+  font-size: 26rpx;
+  color: var(--ns-ink-3);
+}
+
+/* 未验证横幅 */
+.home__banner {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin: 20rpx 24rpx 0;
+  padding: 24rpx;
+  border-radius: 20rpx;
+  background: var(--ns-warning-light);
+}
+
+.home__banner--hover { opacity: 0.9; }
+
+.home__banner-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 20rpx;
+  background: var(--ns-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home__banner-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--ns-ink);
+}
+
+.home__banner-sub {
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: var(--ns-ink-2);
+}
+
+/* 邻里感谢横滑 */
+.home__gratitudes {
+  height: 220rpx;
+  margin: 24rpx 24rpx 0;
+}
+
+.grat-card {
+  height: 188rpx;
+  margin-right: 20rpx;
+  padding: 24rpx 28rpx;
+  border-radius: 20rpx;
+  background: var(--ns-brand-soft);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.grat-card__quote {
+  font-size: 48rpx;
+  font-weight: 700;
+  line-height: 0.6;
+  color: var(--ns-brand);
+  margin-bottom: 16rpx;
+}
+
+.grat-card__content {
+  flex: 1;
+  font-size: 24rpx;
+  color: var(--ns-ink);
+  line-height: 1.6;
+}
+
+.grat-card__meta {
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: var(--ns-ink-3);
+}
+
+/* 网格 */
+.home__grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 24rpx;
+}
+
+.home__cell {
+  width: calc(50% - 12rpx);
+  margin-bottom: 20rpx;
+}
+
+/* 骨架 */
+.home__skeleton {
+  background: var(--ns-card);
+  border-radius: 20rpx;
+  padding: 20rpx;
+}
+
+.home__skeleton-cover {
+  width: 100%;
+  padding-top: 100%;
+  border-radius: 16rpx;
+}
+
+.home__skeleton-line {
+  height: 28rpx;
+  margin-top: 20rpx;
+}
+
+.home__skeleton-line--short { width: 60%; }

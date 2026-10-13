@@ -1,0 +1,57 @@
+<view class="ns-page">
+  <!-- 物品摘要 -->
+  <view wx:if="{{item}}" class="ns-card wants__item" hover-class="wants__item--hover" bindtap="goItem">
+    <image wx:if="{{item.cover}}" class="wants__cover" src="{{item.cover}}" mode="aspectFill" />
+    <view wx:else class="wants__cover wants__cover--empty">
+      <t-icon name="image" size="40rpx" color="var(--ns-ink-3)" />
+    </view>
+    <view class="ns-grow">
+      <view class="ns-ellipsis wants__title">{{item.title}}</view>
+      <status-badge kind="item" status="{{item.status}}" />
+    </view>
+    <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
+  </view>
+
+  <!-- 意向列表 -->
+  <view class="wants__tip">不用先到先得——挑一位最合拍的邻居</view>
+
+  <view wx:for="{{wants}}" wx:key="id" class="ns-card wants__card">
+    <view class="ns-row">
+      <image class="wants__avatar" src="{{item.user.avatar_url || '/assets/tabbar/mine.png'}}" mode="aspectFill" />
+      <view class="ns-grow">
+        <view class="ns-row">
+          <text class="wants__name">{{item.user.nickname}}</text>
+          <view wx:if="{{item.user.verified}}" class="wants__badge" style="color: var(--ns-brand); background: var(--ns-brand-light);">{{item.user.building}}</view>
+        </view>
+        <view class="ns-hint">成交 {{item.userDone}} · 好评 {{item.userRate}}</view>
+      </view>
+      <text class="wants__status" style="color: {{item.statusColor}};">{{item.statusLabel}}</text>
+    </view>
+
+    <view class="wants__message">{{item.message}}</view>
+
+    <view class="wants__tags" wx:if="{{item.bid_cents || item.swap_offer}}">
+      <view wx:if="{{item.bid_cents}}" class="wants__tag" style="color: var(--ns-brand); background: var(--ns-brand-light);">
+        出价 ¥{{item.priceInt}}
+      </view>
+      <view wx:if="{{item.swap_offer}}" class="wants__tag" style="color: var(--ns-swap); background: var(--ns-bg);">
+        想用「{{item.swap_offer}}」交换
+      </view>
+    </view>
+
+    <view class="wants__footer">
+      <text class="ns-hint">{{item.timeText}}</text>
+      <view wx:if="{{item.status === 'pending'}}" class="wants__actions">
+        <view class="ns-btn ns-btn--plain ns-btn--sm" hover-class="ns-btn--hover" data-id="{{item.id}}" bindtap="onReject">婉拒</view>
+        <view class="ns-btn ns-btn--primary ns-btn--sm" hover-class="ns-btn--hover" data-id="{{item.id}}" bindtap="onAccept">接受</view>
+      </view>
+    </view>
+  </view>
+
+  <empty-state
+    wx:if="{{!loading && !wants.length}}"
+    icon="heart"
+    text="还没有收到意向"
+    sub="被邻居看中时会收到通知"
+  />
+</view>

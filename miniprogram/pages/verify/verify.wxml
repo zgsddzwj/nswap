@@ -1,0 +1,93 @@
+<view class="ns-page verify">
+  <!-- 已验证状态 -->
+  <block wx:if="{{me && me.user.verified}}">
+    <view class="ns-card verify__done">
+      <view class="verify__done-icon">
+        <t-icon name="check-circle" size="72rpx" color="var(--ns-brand)" />
+      </view>
+      <view class="ns-h2">你已是 {{me.community ? me.community.name : '本小区'}} 验证住户</view>
+      <view class="ns-sub verify__done-sub">{{me.user.building}}{{me.user.unit ? ' · ' + me.user.unit : ''}} · 发布与交换已解锁</view>
+    </view>
+
+    <!-- 担保码：老住户担保新邻居 -->
+    <view class="ns-card verify__vouch">
+      <view class="ns-h2">老住户担保</view>
+      <view class="ns-sub verify__vouch-sub">完成过交换的老住户，可以为一位新邻居生成担保码</view>
+      <block wx:if="{{vouchCode}}">
+        <view class="verify__code-box" hover-class="verify__copy--hover" bindtap="copyVouch">
+          <text class="verify__code">{{vouchCode}}</text>
+          <text class="verify__copy">复制</text>
+        </view>
+        <view class="ns-hint">发给新邻居，TA 在下方输入即可完成验证（14 天内有效）</view>
+      </block>
+      <block wx:else>
+        <view class="ns-btn ns-btn--soft verify__vouch-btn" hover-class="ns-btn--hover" bindtap="onGenVouch">生成我的担保码</view>
+        <view wx:if="{{vouchError}}" class="ns-hint verify__vouch-err">{{vouchError}}</view>
+      </block>
+    </view>
+  </block>
+
+  <!-- 未验证状态 -->
+  <block wx:else>
+    <view class="verify__hero">
+      <view class="ns-h1">先认识一下</view>
+      <view class="verify__hero-sub">
+        {{communityName ? communityName + ' · ' : ''}}{{verifiedCount}} 位邻居已验证。验证只对同小区住户开放，让交换更安心。
+      </view>
+    </view>
+
+    <!-- 通道切换 -->
+    <view class="verify__tabs">
+      <view class="verify__tab {{channel === 'code' ? 'verify__tab--on' : ''}}" data-channel="code" bindtap="switchChannel">我有验证码</view>
+      <view class="verify__tab {{channel === 'manual' ? 'verify__tab--on' : ''}}" data-channel="manual" bindtap="switchChannel">人工审核</view>
+    </view>
+
+    <!-- 验证码 -->
+    <view wx:if="{{channel === 'code'}}" class="ns-card">
+      <view class="verify__label">邀请码 / 担保码</view>
+      <input
+        class="verify__code-input"
+        value="{{code}}"
+        placeholder="如 YQ-3A8F2C 或 DB-7K2M9P"
+        maxlength="20"
+        bindinput="onCode"
+      />
+      <view class="ns-hint verify__hint">
+        邀请码（YQ-）由居委会、物业或楼长发放；担保码（DB-）由已验证的老邻居生成
+      </view>
+      <view class="ns-btn ns-btn--primary verify__submit {{codeSending ? 'ns-btn--disabled' : ''}}" hover-class="ns-btn--hover" bindtap="onSubmitCode">完成验证</view>
+    </view>
+
+    <!-- 人工审核 -->
+    <view wx:else class="ns-card">
+      <view class="verify__label">楼栋</view>
+      <view wx:if="{{buildings.length}}">
+        <picker range="{{buildings}}" bindchange="onManualBuildingPick">
+          <view class="verify__select">
+            {{manualBuilding || '选择楼栋'}}
+            <t-icon name="chevron-down" size="28rpx" color="var(--ns-ink-3)" />
+          </view>
+        </picker>
+      </view>
+      <input wx:else class="verify__select" value="{{manualBuilding}}" placeholder="如 5栋" bindinput="onManualBuilding" />
+
+      <view class="verify__label">单元（选填）</view>
+      <input class="verify__select" value="{{manualUnit}}" placeholder="如 2单元" bindinput="onManualUnit" />
+
+      <view class="verify__label">业主凭证照片</view>
+      <view class="verify__proof {{proofImage ? 'verify__proof--has' : ''}}" hover-class="verify__proof--hover" bindtap="onPickProof">
+        <block wx:if="{{manualUploading}}">
+          <t-loading theme="circular" size="40rpx" text="上传中" />
+        </block>
+        <image wx:elif="{{proofImage}}" class="verify__proof-img" src="{{proofImage}}" mode="aspectFill" />
+        <block wx:else>
+          <t-icon name="camera" size="48rpx" color="var(--ns-ink-3)" />
+          <text class="ns-hint">房产证/购房合同/门禁卡等，仅管理员可见</text>
+        </block>
+      </view>
+
+      <view class="ns-btn ns-btn--primary verify__submit {{manualSending ? 'ns-btn--disabled' : ''}}" hover-class="ns-btn--hover" bindtap="onSubmitManual">提交审核</view>
+      <view class="ns-hint verify__hint">审核通过后自动完成验证，可在「我的」页查看结果</view>
+    </view>
+  </block>
+</view>

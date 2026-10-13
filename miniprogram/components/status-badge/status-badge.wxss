@@ -1,0 +1,18 @@
+.sb {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 2rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  line-height: 1.7;
+  background: var(--ns-card);
+  border: 2rpx solid var(--ns-line);
+}
+
+.sb__dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+}

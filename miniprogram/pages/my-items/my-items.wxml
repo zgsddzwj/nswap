@@ -1,0 +1,43 @@
+<view class="ns-page">
+  <!-- 状态 chips -->
+  <scroll-view class="mi__tabs" scroll-x enhanced show-scrollbar="{{false}}">
+    <view class="mi__tab-chips">
+      <view
+        wx:for="{{tabs}}"
+        wx:key="value"
+        class="mi__chip {{tab === item.value ? 'mi__chip--on' : ''}}"
+        data-value="{{item.value}}"
+        bindtap="onTab"
+      >{{item.label}}</view>
+    </view>
+  </scroll-view>
+
+  <!-- 列表 -->
+  <view class="mi__list">
+    <view wx:for="{{items}}" wx:key="id" class="mi__row">
+      <item-card item="{{item}}" mode="row">
+        <view class="mi__stats">
+          <text class="ns-hint">{{item.view_count}} 次浏览 · {{item.want_count}} 人想要</text>
+          <view class="ns-btn ns-btn--plain ns-btn--sm" hover-class="ns-btn--hover" data-id="{{item.id}}" catchtap="onManage">管理</view>
+        </view>
+      </item-card>
+    </view>
+  </view>
+
+  <view wx:if="{{firstLoading}}" class="mi__list">
+    <view class="ns-card" wx:for="{{[0,1,2]}}" wx:key="*this" style="margin-bottom: 20rpx;">
+      <view class="ns-skeleton" style="height: 28rpx; width: 60%;"></view>
+      <view class="ns-skeleton" style="height: 28rpx; width: 35%; margin-top: 16rpx;"></view>
+    </view>
+  </view>
+
+  <empty-state
+    wx:if="{{!firstLoading && !items.length}}"
+    icon="shop"
+    text="这个状态下还没有物品"
+    actionText="去发布"
+    bind:action="goPublish"
+  />
+
+  <view wx:if="{{finished && items.length}}" class="ns-list-footer">没有更多了</view>
+</view>

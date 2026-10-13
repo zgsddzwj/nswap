@@ -1,0 +1,30 @@
+{
+  "compileType": "miniprogram",
+  "appid": "touristappid",
+  "projectname": "nswap",
+  "miniprogramRoot": "./",
+  "srcMiniprogramRoot": "./",
+  "libVersion": "3.7.8",
+  "setting": {
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "urlCheck": false,
+    "coverView": true,
+    "ignoreUploadUnusedFiles": true,
+    "useCompilerPlugins": [
+      "typescript"
+    ],
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "condition": {},
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  }
+}

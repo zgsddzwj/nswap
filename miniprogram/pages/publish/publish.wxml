@@ -1,0 +1,27 @@
+<view class="ns-page publish">
+  <view class="publish__hero">
+    <view class="ns-h1">闲置不闲置</view>
+    <view class="publish__hero-sub">选一种方式，让物品流动起来</view>
+  </view>
+
+  <view class="publish__grid">
+    <view
+      wx:for="{{types}}"
+      wx:key="value"
+      class="publish__card"
+      hover-class="publish__card--hover"
+      data-type="{{item.value}}"
+      bindtap="onPick"
+    >
+      <view class="publish__tile" style="background: {{item.color}};">{{item.label}}</view>
+      <view class="publish__card-title">{{item.label}}闲置</view>
+      <view class="publish__card-desc">{{item.desc}}</view>
+      <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
+    </view>
+  </view>
+
+  <view wx:if="{{!verified}}" class="publish__notice">
+    <t-icon name="info-circle" size="32rpx" color="var(--ns-want)" />
+    <text>完成小区验证后即可发布</text>
+  </view>
+</view>

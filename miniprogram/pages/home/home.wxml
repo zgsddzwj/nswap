@@ -1,0 +1,80 @@
+<view class="home">
+  <!-- 搜索框 -->
+  <view class="home__search" hover-class="home__search--hover" bindtap="goSearch">
+    <t-icon name="search" size="36rpx" color="var(--ns-ink-3)" />
+    <text class="home__search-placeholder">搜索闲置物品</text>
+  </view>
+
+  <!-- 未验证横幅 -->
+  <view wx:if="{{!verified}}" class="home__banner" hover-class="home__banner--hover" bindtap="goVerify">
+    <view class="home__banner-icon">
+      <t-icon name="notification" size="36rpx" color="var(--ns-want)" />
+    </view>
+    <view class="ns-grow">
+      <view class="home__banner-title">完成小区验证，解锁发布与交换</view>
+      <view class="home__banner-sub">邀请码 / 老邻居担保 / 人工审核</view>
+    </view>
+    <t-icon name="chevron-right" size="40rpx" color="var(--ns-ink-3)" />
+  </view>
+
+  <!-- 邻里感谢 -->
+  <swiper wx:if="{{gratitudes.length}}" class="home__gratitudes" display-multiple-items="{{2}}" next-margin="0">
+    <swiper-item wx:for="{{gratitudes}}" wx:key="id">
+      <view class="grat-card" data-item-id="{{item.item_id}}" bindtap="goGratitude">
+        <view class="grat-card__quote">”</view>
+        <view class="grat-card__content ns-ellipsis-2">{{item.content}}</view>
+        <view class="grat-card__meta ns-ellipsis">{{item.user.building || item.to_building || ''}} {{item.user.nickname}}</view>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <!-- 筛选 -->
+  <filter-bar
+    type="{{filters.type}}"
+    category="{{filters.category}}"
+    building="{{filters.building}}"
+    buildings="{{buildings}}"
+    bind:change="onFiltersChange"
+  />
+
+  <!-- 商品双列网格 -->
+  <view class="home__grid">
+    <block wx:for="{{items}}" wx:key="id">
+      <view class="home__cell {{index % 2 === 0 ? 'home__cell--left' : ''}}">
+        <item-card item="{{item}}" mode="grid" />
+      </view>
+    </block>
+  </view>
+
+  <!-- 骨架屏 -->
+  <view wx:if="{{firstLoading && !items.length}}" class="home__grid">
+    <view class="home__cell" wx:for="{{[0,1,2,3]}}" wx:key="*this">
+      <view class="home__skeleton">
+        <view class="ns-skeleton home__skeleton-cover"></view>
+        <view class="ns-skeleton home__skeleton-line"></view>
+        <view class="ns-skeleton home__skeleton-line home__skeleton-line--short"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空态 / 错误态 -->
+  <empty-state
+    wx:if="{{!firstLoading && !items.length && !loadError}}"
+    icon="shop"
+    text="还没有闲置物品"
+    sub="成为第一个发布的人吧"
+    actionText="{{verified ? '去发布' : '先完成小区验证'}}"
+    bind:action="onEmptyAction"
+  />
+
+  <empty-state
+    wx:if="{{loadError}}"
+    icon="error-circle"
+    text="加载失败"
+    sub="网络似乎不太顺畅"
+    actionText="重新加载"
+    bind:action="onRetry"
+  />
+
+  <view wx:if="{{footerText}}" class="ns-list-footer">{{footerText}}</view>
+</view>

@@ -1,0 +1,18 @@
+<view class="ns-page">
+  <view class="fav__grid">
+    <view class="fav__cell" wx:for="{{items}}" wx:key="id">
+      <item-card item="{{item}}" mode="grid" />
+    </view>
+  </view>
+
+  <empty-state
+    wx:if="{{!firstLoading && !items.length}}"
+    icon="heart"
+    text="还没有收藏"
+    sub="看到心动的闲置，点亮小红心"
+    actionText="去逛逛"
+    bind:action="goHome"
+  />
+
+  <view wx:if="{{finished && items.length}}" class="ns-list-footer">没有更多了</view>
+</view>

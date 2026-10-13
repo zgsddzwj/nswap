@@ -1,0 +1,52 @@
+<view class="ns-page">
+  <view class="mt__tabs">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="value"
+      class="mt__tab {{tab === item.value ? 'mt__tab--on' : ''}}"
+      data-value="{{item.value}}"
+      bindtap="onTab"
+    >{{item.label}}</view>
+  </view>
+
+  <view class="mt__list">
+    <view
+      wx:for="{{trades}}"
+      wx:key="id"
+      class="ns-card mt__row"
+      hover-class="mt__row--hover"
+      data-id="{{item.id}}"
+      bindtap="goTrade"
+    >
+      <image wx:if="{{item.item && item.item.cover}}" class="mt__cover" src="{{item.item.cover}}" mode="aspectFill" />
+      <view wx:else class="mt__cover mt__cover--empty"><t-icon name="gift" size="36rpx" color="var(--ns-ink-3)" /></view>
+      <view class="ns-grow">
+        <view class="ns-row">
+          <text class="mt__title ns-ellipsis">{{item.item ? item.item.title : '物品已删除'}}</text>
+          <status-badge kind="trade" status="{{item.status}}" />
+        </view>
+        <view class="ns-sub mt__cp">与 {{item.counterpart.nickname}}（{{item.counterpart.building}}）</view>
+        <view class="ns-hint">{{item.timeText}}</view>
+      </view>
+      <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
+    </view>
+  </view>
+
+  <view wx:if="{{firstLoading}}" class="mt__list">
+    <view class="ns-card" wx:for="{{[0,1,2]}}" wx:key="*this" style="margin-bottom: 20rpx;">
+      <view class="ns-skeleton" style="height: 28rpx; width: 55%;"></view>
+      <view class="ns-skeleton" style="height: 24rpx; width: 40%; margin-top: 16rpx;"></view>
+    </view>
+  </view>
+
+  <empty-state
+    wx:if="{{!firstLoading && !trades.length}}"
+    icon="gift"
+    text="{{tab === 'ongoing' ? '还没有进行中的交换' : tab === 'completed' ? '还没有完成的交换' : '没有取消过的交易'}}"
+    sub="提交意向并被接受后，交换流程会出现在这里"
+    actionText="去逛逛"
+    bind:action="goHome"
+  />
+
+  <view wx:if="{{finished && trades.length}}" class="ns-list-footer">没有更多了</view>
+</view>

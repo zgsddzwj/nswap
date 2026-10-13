@@ -1,0 +1,358 @@
+/* ============================================================
+   NS Design · nswap 小程序设计令牌与基础样式
+   风格：青苔深绿 / 克制留白 / 白卡片 / 清晰字阶
+   所有颜色走 CSS 变量，暗色模式在文件末尾统一覆盖
+   ============================================================ */
+
+page {
+  /* 品牌色 */
+  --ns-brand: #0E7A5A;
+  --ns-brand-active: #0A5F46;
+  --ns-brand-light: #E7F3EE;
+  --ns-brand-soft: #F2F8F5;
+
+  /* 中性色 */
+  --ns-bg: #F6F7F9;
+  --ns-card: #FFFFFF;
+  --ns-ink: #1B2733;
+  --ns-ink-2: #667385;
+  --ns-ink-3: #9AA5B1;
+  --ns-line: #EEF1F4;
+  --ns-mask: rgba(17, 24, 32, 0.5);
+
+  /* 四形态色 */
+  --ns-sell: #0E7A5A;
+  --ns-give: #D96A3C;
+  --ns-swap: #4C6FB1;
+  --ns-want: #B0812E;
+
+  /* 语义色 */
+  --ns-success: #0E7A5A;
+  --ns-success-light: #E7F3EE;
+  --ns-warning: #B0812E;
+  --ns-warning-light: #F8F0DF;
+  --ns-danger: #C9453B;
+  --ns-danger-light: #FBEDEB;
+
+  /* 阴影 */
+  --ns-shadow-card: 0 4rpx 24rpx rgba(23, 35, 61, 0.04);
+  --ns-shadow-float: 0 -8rpx 40rpx rgba(23, 35, 61, 0.08);
+
+  /* TDesign 主题对齐 */
+  --td-brand-color: #0E7A5A;
+  --td-brand-color-active: #0A5F46;
+  --td-brand-color-light: #E7F3EE;
+  --td-brand-color-focus: #0E7A5A;
+  --td-bg-color: #FFFFFF;
+  --td-bg-color-secondary: #F6F7F9;
+  --td-bg-color-container: #FFFFFF;
+  --td-text-color-primary: #1B2733;
+  --td-text-color-secondary: #667385;
+  --td-text-color-placeholder: #9AA5B1;
+  --td-text-color-disabled: #9AA5B1;
+  --td-text-color-brand: #0E7A5A;
+  --td-border-level-1-color: #EEF1F4;
+  --td-component-border: #EEF1F4;
+  --td-radius-small: 12rpx;
+  --td-radius-default: 16rpx;
+  --td-radius-large: 20rpx;
+  --td-radius-round: 999rpx;
+
+  background: var(--ns-bg);
+  color: var(--ns-ink);
+  font-size: 28rpx;
+  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------------- 基础布局 ---------------- */
+
+.ns-page {
+  min-height: 100vh;
+  padding: 24rpx 24rpx 40rpx;
+  box-sizing: border-box;
+}
+
+.ns-card {
+  background: var(--ns-card);
+  border-radius: 20rpx;
+  padding: 24rpx;
+  box-shadow: var(--ns-shadow-card);
+}
+
+.ns-row {
+  display: flex;
+  align-items: center;
+}
+
+.ns-grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.ns-gap {
+  height: 24rpx;
+}
+
+/* ---------------- 文本 ---------------- */
+
+.ns-h1 { font-size: 40rpx; font-weight: 700; color: var(--ns-ink); }
+.ns-h2 { font-size: 32rpx; font-weight: 600; color: var(--ns-ink); }
+.ns-title { font-size: 30rpx; font-weight: 600; color: var(--ns-ink); }
+.ns-text { font-size: 28rpx; color: var(--ns-ink); }
+.ns-sub { font-size: 24rpx; color: var(--ns-ink-2); }
+.ns-hint { font-size: 22rpx; color: var(--ns-ink-3); }
+
+.ns-ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ns-ellipsis-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* ---------------- 价格（多抓鱼式：小 ¥ + 大数字） ---------------- */
+
+.ns-price {
+  display: inline-flex;
+  align-items: baseline;
+  color: var(--ns-ink);
+  font-weight: 700;
+}
+
+.ns-price__symbol { font-size: 24rpx; font-weight: 600; margin-right: 2rpx; }
+.ns-price__int { font-size: 36rpx; line-height: 1.1; }
+.ns-price__dec { font-size: 24rpx; font-weight: 600; }
+
+/* ---------------- 胶囊标签 ---------------- */
+
+.ns-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  line-height: 1.6;
+}
+
+/* ---------------- 按钮 ---------------- */
+
+.ns-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  box-sizing: border-box;
+  transition: opacity 0.15s ease;
+}
+
+.ns-btn::after { border: none; }
+.ns-btn:active { opacity: 0.8; }
+
+.ns-btn--primary {
+  background: var(--ns-brand);
+  color: #FFFFFF;
+}
+
+.ns-btn--ghost {
+  background: transparent;
+  color: var(--ns-brand);
+  border: 2rpx solid var(--ns-brand);
+}
+
+.ns-btn--soft {
+  background: var(--ns-brand-light);
+  color: var(--ns-brand);
+}
+
+.ns-btn--danger {
+  background: transparent;
+  color: var(--ns-danger);
+  border: 2rpx solid var(--ns-danger);
+}
+
+.ns-btn--plain {
+  background: var(--ns-bg);
+  color: var(--ns-ink-2);
+}
+
+.ns-btn--disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.ns-btn--sm {
+  height: 64rpx;
+  padding: 0 28rpx;
+  font-size: 26rpx;
+  border-radius: 999rpx;
+  display: inline-flex;
+}
+
+/* ---------------- 单元格 ---------------- */
+
+.ns-cell {
+  display: flex;
+  align-items: center;
+  min-height: 104rpx;
+  padding: 0 24rpx;
+  background: var(--ns-card);
+}
+
+.ns-cell__hd { margin-right: 20rpx; display: flex; align-items: center; }
+.ns-cell__bd { flex: 1; min-width: 0; font-size: 28rpx; color: var(--ns-ink); }
+.ns-cell__ft { color: var(--ns-ink-3); font-size: 26rpx; display: flex; align-items: center; }
+
+.ns-cell--hover { background: var(--ns-bg); }
+
+/* ---------------- 底部固定操作栏（毛玻璃 + 安全区） ---------------- */
+
+.ns-footer-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom));
+  background: var(--ns-card);
+  box-shadow: var(--ns-shadow-float);
+}
+
+/* 给页面主体让出底部栏高度 */
+.ns-footer-bar__holder { height: 160rpx; }
+
+/* ---------------- 列表页脚 ---------------- */
+
+.ns-list-footer {
+  padding: 28rpx 0 8rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--ns-ink-3);
+}
+
+/* ---------------- 骨架屏 ---------------- */
+
+.ns-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--ns-line);
+  border-radius: 12rpx;
+}
+
+.ns-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 100%
+  );
+  animation: ns-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes ns-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ---------------- 表单 ---------------- */
+
+.ns-form-section {
+  background: var(--ns-card);
+  border-radius: 20rpx;
+  padding: 8rpx 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: var(--ns-shadow-card);
+}
+
+.ns-form-label {
+  font-size: 26rpx;
+  color: var(--ns-ink-2);
+  padding: 24rpx 0 8rpx;
+  display: flex;
+  align-items: center;
+}
+
+.ns-form-label--required::before {
+  content: "*";
+  color: var(--ns-danger);
+  margin-right: 6rpx;
+}
+
+/* ---------------- 安全区工具 ---------------- */
+
+.ns-safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+/* ---------------- 暗色模式 ---------------- */
+
+@media (prefers-color-scheme: dark) {
+  page {
+    --ns-brand: #3AAE8A;
+    --ns-brand-active: #55BD99;
+    --ns-brand-light: #17302A;
+    --ns-brand-soft: #14231F;
+
+    --ns-bg: #111417;
+    --ns-card: #1C2127;
+    --ns-ink: #E8ECF1;
+    --ns-ink-2: #9AA5B1;
+    --ns-ink-3: #636E7A;
+    --ns-line: #2A2F36;
+    --ns-mask: rgba(0, 0, 0, 0.6);
+
+    --ns-sell: #3AAE8A;
+    --ns-give: #E08A5F;
+    --ns-swap: #7B96C6;
+    --ns-want: #CBA24E;
+
+    --ns-success: #3AAE8A;
+    --ns-success-light: #17302A;
+    --ns-warning: #CBA24E;
+    --ns-warning-light: #31281A;
+    --ns-danger: #D96B60;
+    --ns-danger-light: #3A2321;
+
+    --ns-shadow-card: 0 4rpx 24rpx rgba(0, 0, 0, 0.24);
+    --ns-shadow-float: 0 -8rpx 40rpx rgba(0, 0, 0, 0.4);
+
+    --td-brand-color: #3AAE8A;
+    --td-brand-color-active: #55BD99;
+    --td-brand-color-light: #17302A;
+    --td-brand-color-focus: #3AAE8A;
+    --td-bg-color: #1C2127;
+    --td-bg-color-secondary: #111417;
+    --td-bg-color-container: #1C2127;
+    --td-text-color-primary: #E8ECF1;
+    --td-text-color-secondary: #9AA5B1;
+    --td-text-color-placeholder: #636E7A;
+    --td-text-color-disabled: #636E7A;
+    --td-text-color-brand: #3AAE8A;
+    --td-border-level-1-color: #2A2F36;
+    --td-component-border: #2A2F36;
+  }
+
+  /* 暗色下骨架微光减弱，避免刺眼 */
+  .ns-skeleton::after {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.08) 50%,
+      transparent 100%
+    );
+  }
+}

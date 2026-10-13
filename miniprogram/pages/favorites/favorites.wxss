@@ -1,0 +1,10 @@
+.fav__grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.fav__cell {
+  width: calc(50% - 12rpx);
+  margin-bottom: 20rpx;
+}
