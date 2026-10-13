@@ -18,7 +18,7 @@ export const CONFIG = {
   LOCAL_DEV,
 
   /** 本地开发后端地址（docker-compose up 后默认 127.0.0.1:8000） */
-  DEV_BASE_URL: "http://127.0.0.1:8000",
+  DEV_BASE_URL: "http://127.0.0.1:8001",
 
   /** 云托管环境 ID（微信云托管控制台「环境」页） */
   CLOUD_ENV: "",
@@ -27,7 +27,7 @@ export const CONFIG = {
   CLOUD_SERVICE: "nswap",
 
   /** 管理后台地址（复制到浏览器打开；本地即后端地址） */
-  ADMIN_URL: "http://127.0.0.1:8000/admin",
+  ADMIN_URL: "http://127.0.0.1:8001/admin",
 
   /**
    * 订阅消息模板 ID（微信公众平台「订阅消息」申请后填入，与后端 .env 的
