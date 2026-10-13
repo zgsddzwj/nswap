@@ -13,6 +13,7 @@
   <div class="d-flex justify-content-between">
     <div>
       <span class="badge bg-secondary">{{ r.target_type }}</span>
+      {% if admin.community_id is none %}<span class="badge bg-info text-dark">{{ community_names.get(r.community_id, '无归属') }}</span>{% endif %}
       <strong>{{ target }}</strong>
       <span class="text-danger ms-2">{{ r.reason }}</span>
       {% if r.detail %}<div class="small text-muted mt-1">{{ r.detail }}</div>{% endif %}

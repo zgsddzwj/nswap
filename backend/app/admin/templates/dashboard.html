@@ -17,6 +17,20 @@
   </div>
   {% endfor %}
 </div>
+{% if communities_overview %}
+<div class="card mb-4"><div class="card-header">小区概览</div>
+  <table class="table table-sm mb-0">
+    <tr><th>#</th><th>小区</th><th>城市</th><th>状态</th><th>住户</th><th>在架物品</th><th>物业账号</th></tr>
+    {% for r in communities_overview %}
+    <tr>
+      <td>{{ r.community.id }}</td><td>{{ r.community.name }}</td><td>{{ r.community.city }}</td>
+      <td>{{ '正常' if r.community.status == 'active' else '已停用' }}</td>
+      <td>{{ r.users }}</td><td>{{ r.items }}</td><td>{{ r.admins }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
 <div class="row g-3">
   <div class="col-md-7">
     <div class="card"><div class="card-header">最近发布</div>

@@ -69,8 +69,23 @@ class AdminUser(Base):
     username: Mapped[str] = mapped_column(String(30), unique=True)
     password_hash: Mapped[str] = mapped_column(String(200))
     name: Mapped[str] = mapped_column(String(30), default="")
+    # NULL=平台超管（全局）；非 NULL=物业管理员（仅管本小区）
+    community_id: Mapped[int | None] = mapped_column(ForeignKey("communities.id"), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime)
+
+
+class Announcement(Base):
+    """物业公告：仅本小区住户可见（小程序只读，管理后台发布/删除）"""
+
+    __tablename__ = "announcements"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    community_id: Mapped[int] = mapped_column(ForeignKey("communities.id"), index=True)
+    title: Mapped[str] = mapped_column(String(100))
+    content: Mapped[str] = mapped_column(Text)
+    published_by: Mapped[int | None] = mapped_column(ForeignKey("admin_users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
 class AdminLog(Base):

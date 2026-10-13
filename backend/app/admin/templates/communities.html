@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% set active = "communities" %}
+{% block content %}
+<h5 class="mb-3">小区管理</h5>
+
+{% if new_password %}
+<div class="alert alert-warning">
+  已重置「{{ reset_for }}」物业管理员密码（仅本次显示，请立即复制发给物业）：
+  <code class="fs-5">{{ new_password }}</code>
+</div>
+{% endif %}
+
+<div class="card mb-4"><div class="card-body">
+  <form method="post" action="/admin/communities" class="row g-2 align-items-end">
+    <div class="col-auto">
+      <label class="form-label small mb-0">小区名称</label>
+      <input name="name" class="form-control form-control-sm" required placeholder="如 阳光花园">
+    </div>
+    <div class="col-auto">
+      <label class="form-label small mb-0">城市（必填，同城维度）</label>
+      <input name="city" class="form-control form-control-sm" required placeholder="如 杭州">
+    </div>
+    <div class="col-auto">
+      <label class="form-label small mb-0">区</label>
+      <input name="district" class="form-control form-control-sm" placeholder="如 西湖区">
+    </div>
+    <div class="col-auto">
+      <label class="form-label small mb-0">地址</label>
+      <input name="address" class="form-control form-control-sm" placeholder="选填">
+    </div>
+    <div class="col-auto">
+      <label class="form-label small mb-0">物业账号用户名</label>
+      <input name="admin_username" class="form-control form-control-sm" required placeholder="如 wy_yangguang">
+    </div>
+    <div class="col-auto">
+      <label class="form-label small mb-0">物业名称</label>
+      <input name="admin_name" class="form-control form-control-sm" placeholder="如 阳光花园物业">
+    </div>
+    <div class="col-auto">
+      <label class="form-label small mb-0">初始密码（≥8位）</label>
+      <input name="admin_password" type="password" class="form-control form-control-sm" required minlength="8">
+    </div>
+    <div class="col-auto"><button class="btn btn-sm btn-dark">开通小区</button></div>
+  </form>
+  <div class="form-text small">开通后用物业账号登录 /admin 管理本小区（邀请码/公告/巡查/举报/审核）。</div>
+</div></div>
+
+<div class="card"><div class="card-header">已开通小区</div>
+  <table class="table table-sm mb-0">
+    <tr><th>#</th><th>名称</th><th>城市</th><th>区</th><th>状态</th><th>住户</th><th>物品</th><th>物业账号</th><th>开通时间</th><th></th></tr>
+    {% for r in rows %}
+    {% set c = r.community %}
+    <tr>
+      <td>{{ c.id }}</td>
+      <td>{{ c.name }}</td>
+      <td>{{ c.city }}</td>
+      <td>{{ c.district }}</td>
+      <td>
+        {% if c.status == 'active' %}<span class="badge bg-success">正常</span>
+        {% else %}<span class="badge bg-secondary">已停用</span>{% endif %}
+      </td>
+      <td>{{ r.users }}</td>
+      <td>{{ r.items }}</td>
+      <td class="small">
+        {% for a in r.admins %}{{ a.username }}{% if not loop.last %}、{% endif %}{% else %}-{% endfor %}
+      </td>
+      <td class="small">{{ c.created_at.strftime('%Y-%m-%d') }}</td>
+      <td>
+        <form method="post" action="/admin/communities/{{ c.id }}/toggle-status" class="d-inline"
+              onsubmit="return confirm('确认{{ '停用' if c.status == 'active' else '启用' }}「{{ c.name }}」？')">
+          <button class="btn btn-sm btn-outline-{{ 'danger' if c.status == 'active' else 'success' }} py-0">
+            {{ '停用' if c.status == 'active' else '启用' }}
+          </button>
+        </form>
+        <form method="post" action="/admin/communities/{{ c.id }}/reset-password" class="d-inline"
+              onsubmit="return confirm('确认重置「{{ c.name }}」物业账号密码？')">
+          <button class="btn btn-sm btn-outline-secondary py-0">重置物业密码</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

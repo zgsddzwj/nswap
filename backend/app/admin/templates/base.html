@@ -10,20 +10,27 @@
     .sidebar { width: 200px; min-height: 100vh; background: #212529; }
     .sidebar a { color: #adb5bd; text-decoration: none; padding: 12px 20px; display: block; }
     .sidebar a:hover, .sidebar a.active { color: #fff; background: #343a40; }
+    .sidebar .role-tag { color: #6c757d; font-size: 12px; padding: 0 20px 12px; }
   </style>
 </head>
 <body>
 <div class="d-flex">
   <nav class="sidebar d-flex flex-column pt-3">
-    <div class="text-white fw-bold px-3 pb-3 mb-2 border-bottom border-secondary">nswap 后台</div>
+    <div class="text-white fw-bold px-3 pb-1 mb-2 border-bottom border-secondary">nswap 后台</div>
+    <div class="role-tag">{{ '平台超管' if admin.community_id is none else '物业管理员' }}</div>
     <a href="/admin" class="{{ 'active' if active == 'dashboard' }}">看板</a>
     <a href="/admin/invites" class="{{ 'active' if active == 'invites' }}">邀请码管理</a>
+    <a href="/admin/announcements" class="{{ 'active' if active == 'announcements' }}">公告管理</a>
     <a href="/admin/items" class="{{ 'active' if active == 'items' }}">内容巡查</a>
     <a href="/admin/reports" class="{{ 'active' if active == 'reports' }}">举报处置</a>
     <a href="/admin/users" class="{{ 'active' if active == 'users' }}">用户管理</a>
+    {% if admin.community_id is none %}
+    <a href="/admin/communities" class="{{ 'active' if active == 'communities' }}">小区管理</a>
     <a href="/admin/sec-checks" class="{{ 'active' if active == 'sec_checks' }}">内容安全记录</a>
+    {% endif %}
     <div class="mt-auto px-3 pb-3">
-      <form method="post" action="/admin/logout">
+      <a href="/admin/password" class="{{ 'active' if active == 'password' }}" style="padding:6px 20px;font-size:13px;">修改密码</a>
+      <form method="post" action="/admin/logout" class="mt-2">
         <button class="btn btn-sm btn-outline-secondary w-100">退出（{{ admin.name or admin.username }}）</button>
       </form>
     </div>

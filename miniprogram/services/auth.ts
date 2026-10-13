@@ -17,6 +17,7 @@ export interface UserSummary {
   nickname: string;
   avatar_url: string;
   building: string;
+  community_name?: string;
   verified: boolean;
   role: string;
   stats: UserStats;
@@ -24,7 +25,7 @@ export interface UserSummary {
 }
 
 export interface Me {
-  user: UserSummary & { unit?: string; status: string };
+  user: UserSummary & { unit?: string; status: string; community_id?: number | null };
   community: { id: number; name: string; verified_count: number; item_count: number } | null;
   unread_count: number;
 }

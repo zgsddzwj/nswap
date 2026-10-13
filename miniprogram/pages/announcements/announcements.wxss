@@ -1,0 +1,21 @@
+.ann__card {
+  margin-bottom: 20rpx;
+}
+
+.ann__title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--ns-ink);
+}
+
+.ann__content {
+  margin-top: 12rpx;
+  font-size: 27rpx;
+  color: var(--ns-ink);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.ann__time {
+  margin-top: 14rpx;
+}

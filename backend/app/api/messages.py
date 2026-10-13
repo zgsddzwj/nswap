@@ -45,7 +45,7 @@ def list_messages(
                     "content": m.content,
                     "sec_status": m.sec_status,
                     "created_at": iso(m.created_at),
-                    "user": user_summary(users[m.user_id]) if m.user_id in users else None,
+                    "user": user_summary(users[m.user_id], db, user) if m.user_id in users else None,
                 }
                 for m in reversed(rows)
             ],
@@ -89,6 +89,6 @@ def create_message(
             "content": msg.content,
             "sec_status": msg.sec_status,
             "created_at": iso(msg.created_at),
-            "user": user_summary(user),
+            "user": user_summary(user, db, user),
         }
     )

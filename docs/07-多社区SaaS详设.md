@@ -1,6 +1,12 @@
 # 07 · 多社区 SaaS 详设（v2 · 已评审修订）
 
-> 状态：待用户评审（分支 `feat/saas-multitenant`）｜前置：v0.1.0（单社区 MVP）
+> 状态：**已实施**（分支 `feat/saas-multitenant`，pytest 36 项 + E2E 15 项验证通过）｜前置：v0.1.0
+> 实施修订（M1-M5 中发现并回写）：
+> ① `join` 原本已按 `invite.community_id` 绑定小区（v1 评审时误判为缺陷），实际需修正的只有 manual_apply；
+> ② 公告不做微信 msgSecCheck——该接口要求终端用户 openid，管理员发布无 openid，改为 admin_logs 留痕问责（§4.6 已更新）；
+> ③ sec_checks 表无 community_id，无法按小区隔离 → 调整为平台超管专属页（§5.2 已更新）；
+> ④ 感谢帖 `GET /api/gratitudes` 补充社区隔离：仅返回本小区感谢帖（§4.9 补充）；
+> ⑤ trade_dto 新增 `cross_community: bool` 字段，前端据此禁用 porch/lobby（§4.5 补充）。
 > 决策记录：同城浏览=双 Tab；跨小区=可完整交易；公告触达=首页公告卡（不发全员通知）；
 > 物业后台=Web /admin 分权；本期不做计费、不做小程序内物业端。
 > 原则：**文档即蓝图**——本文是实施依据；实现偏差必须回写本文。
@@ -121,7 +127,7 @@
 | 接口 | 说明 |
 |---|---|
 | `GET /api/announcements?cursor&limit(默认10,≤50)` | 本小区公告，`created_at desc`，int 游标；返回 `{list:[{id,title,content,created_at}], next_cursor}`；未加入小区 → 空列表；`get_current_user` |
-- 创建走管理后台（§5.3）；**创建时过 `sec_check.check_text`**（R9）：风险内容拒绝并提示物业修改；审核异常（降级）→ 拒绝发布并提示"稍后重试"（fail-closed，避免违规公告静默上线）。
+- 创建走管理后台（§5.3）。**不做微信 msgSecCheck**（实施修订②：该接口要求终端用户 openid，管理员发布无 openid），问责靠 admin_logs 留痕。
 
 ### 4.7 `GET /api/community/info` 语义修正
 - 已加入：现结构 + `city`/`district`；`buildings` 改为**只统计本小区**（现全表 distinct 是多社区下的 bug）。
@@ -140,8 +146,11 @@
 
 实现：`serialize.py` 内加 `_same_community(viewer, target)` 与请求内 `community_name` 批量缓存（`item_cards` 已有批处理入口）。**不引入全局缓存**。
 
-### 4.9 不变的接口
-意向/会话/私信/交易/评价/感谢/收藏/上传/联系方式交换：按参与者与物品归属运作，不感知小区（跨小区交易由此天然支持）。唯一例外：§4.8 的 user_summary 隐藏规则同样作用于其中。
+### 4.9 不变的接口与补充
+意向/会话/私信/交易/评价/收藏/上传/联系方式交换：按参与者与物品归属运作，不感知小区（跨小区交易由此天然支持）。例外与补充：
+- §4.8 的 user_summary 隐藏规则同样作用于其中；
+- **感谢帖 `GET /api/gratitudes` 增加社区过滤**：仅返回本小区感谢帖（跨小区感谢对邻里氛围无意义）；
+- **`trade_dto` 新增 `cross_community: bool`**：前端据此禁用 porch/lobby 交接方式（与 §4.5 后端校验双保险）。
 
 ## 5. 管理后台多租户（Web /admin）
 
@@ -161,7 +170,7 @@
 | reports（列表/处置） | **本小区**（按 §4.4 新归属） | 全局（+小区列） |
 | users（封禁/解封/楼长） | 本小区 | 全局（+小区列） |
 | verify-requests（人工审批） | 本小区 | 全局 |
-| sec-checks | 本小区 | 全局 |
+| sec-checks | **不开放（表无小区维度，平台级数据）** | 全局 |
 | 所有写操作 | 目标归属校验，越权 403 | 不限 |
 
 ### 5.3 新增页面/操作

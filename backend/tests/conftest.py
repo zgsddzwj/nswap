@@ -34,7 +34,7 @@ def client(db):
 
 @pytest.fixture()
 def community(db):
-    c = Community(name="阳光花园", address="测试地址")
+    c = Community(name="阳光花园", address="测试地址", city="测试市")
     db.add(c)
     db.commit()
     db.refresh(c)

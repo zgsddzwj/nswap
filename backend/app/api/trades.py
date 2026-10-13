@@ -75,6 +75,17 @@ def arrange_trade(
     trade = _get_trade(db, trade_id, user)
     if trade.status not in ("pending", "arranged"):
         raise conflict("交易已结束，不能再约定")
+    # 跨小区交易仅允许当面交接（放门口/物业前台对外小区住户不可行，docs/07 §4.5）
+    owner_user = db.get(User, trade.owner_id)
+    other_user = db.get(User, trade.other_id)
+    if (
+        owner_user
+        and other_user
+        and owner_user.community_id != other_user.community_id
+        and payload.place_method != "face"
+    ):
+        raise bad_request("跨小区交换请选择当面交接")
+
     if payload.place_method not in PLACE_METHODS:
         raise bad_request("交接方式不合法")
     meet_time = parse_iso(payload.meet_time)

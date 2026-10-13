@@ -8,16 +8,20 @@ Page({
     communityName: "",
     verifiedCount: 0,
     buildings: [] as string[],
-    /* 码验证 */
+    /* 人工审核 */
     channel: "code" as "code" | "manual",
     code: "",
     codeSending: false,
-    /* 人工审核 */
     manualBuilding: "",
     manualUnit: "",
     proofImage: "",
     manualUploading: false,
     manualSending: false,
+    /* 小区搜索（人工审核必须先选小区，docs/07 §4.2） */
+    communityKw: "",
+    communityResults: [] as { id: number; name: string; city: string; district: string }[],
+    selectedCommunity: null as { id: number; name: string; city: string } | null,
+    searching: false,
     /* 担保码生成 */
     vouchCode: "",
     vouchExpires: "",
@@ -75,6 +79,39 @@ Page({
 
   /* ---------------- 人工审核 ---------------- */
 
+  onCommunityKw(e: WechatMiniprogram.CustomEvent<{ value: string }>) {
+    this.setData({ communityKw: e.detail.value });
+  },
+
+  async onSearchCommunities() {
+    if (this.data.searching) return;
+    this.setData({ searching: true });
+    try {
+      const r = await get<{ list: { id: number; name: string; city: string; district: string }[] }>(
+        "/api/communities",
+        { keyword: this.data.communityKw }
+      );
+      this.setData({ communityResults: r.list || [] });
+      if (!r.list.length) wx.showToast({ title: "没找到该小区", icon: "none" });
+    } catch (e) {
+      toastError(e);
+    } finally {
+      this.setData({ searching: false });
+    }
+  },
+
+  onRestartCommunitySearch(e: WechatMiniprogram.TouchEvent) {
+    this.setData({ selectedCommunity: null });
+    this.onSearchCommunities();
+  },
+
+  onPickCommunity(e: WechatMiniprogram.TouchEvent) {
+    const idx = e.currentTarget.dataset.index as number;
+    const c = this.data.communityResults[idx];
+    if (!c) return;
+    this.setData({ selectedCommunity: { id: c.id, name: c.name, city: c.city }, communityResults: [] });
+  },
+
   onManualBuilding(e: WechatMiniprogram.CustomEvent<{ value: string }>) {
     this.setData({ manualBuilding: e.detail.value });
   },
@@ -103,6 +140,10 @@ Page({
 
   async onSubmitManual() {
     if (this.data.manualSending) return;
+    if (!this.data.selectedCommunity) {
+      wx.showToast({ title: "请先搜索并选择小区", icon: "none" });
+      return;
+    }
     if (!this.data.manualBuilding.trim()) {
       wx.showToast({ title: "填写楼栋", icon: "none" });
       return;
@@ -114,6 +155,7 @@ Page({
     this.setData({ manualSending: true });
     try {
       await post("/api/community/manual-apply", {
+        community_id: this.data.selectedCommunity.id,
         building: this.data.manualBuilding.trim(),
         unit: this.data.manualUnit.trim() || null,
         proof_image: this.data.proofImage,

@@ -128,3 +128,60 @@
 }
 
 .home__skeleton-line--short { width: 60%; }
+
+/* 双 Tab */
+.home__tabs {
+  display: flex;
+  gap: 32rpx;
+  padding: 20rpx 32rpx 0;
+}
+
+.home__tab {
+  position: relative;
+  padding: 12rpx 4rpx;
+  font-size: 30rpx;
+  color: var(--ns-ink-2);
+}
+
+.home__tab--on {
+  color: var(--ns-ink);
+  font-weight: 700;
+}
+
+.home__tab-line {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  width: 40rpx;
+  height: 8rpx;
+  border-radius: 8rpx;
+  background: var(--ns-brand);
+}
+
+/* 公告卡 */
+.home__notice {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin: 20rpx 24rpx 0;
+  padding: 20rpx 24rpx;
+  border-radius: 20rpx;
+  background: var(--ns-card);
+  box-shadow: var(--ns-shadow-card);
+}
+
+.home__notice-tag {
+  padding: 2rpx 14rpx;
+  border-radius: 999rpx;
+  background: var(--ns-brand-light);
+  color: var(--ns-brand);
+  font-size: 20rpx;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.home__notice-title {
+  font-size: 26rpx;
+  color: var(--ns-ink);
+}

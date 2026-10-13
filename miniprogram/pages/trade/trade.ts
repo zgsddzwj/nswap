@@ -96,7 +96,13 @@ Page({
   },
 
   onPickMethod(e: WechatMiniprogram.TouchEvent) {
-    this.setData({ placeMethod: e.currentTarget.dataset.method as PlaceMethod });
+    const method = e.currentTarget.dataset.method as PlaceMethod;
+    // 跨小区仅允许当面（后端同样校验，docs/07 §4.5）
+    if (this.data.t && this.data.t.cross_community && method !== "face") {
+      wx.showToast({ title: "跨小区交换请选择当面交接", icon: "none" });
+      return;
+    }
+    this.setData({ placeMethod: method });
   },
 
   onDate(e: WechatMiniprogram.PickerChange) {

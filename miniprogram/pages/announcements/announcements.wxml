@@ -1,0 +1,23 @@
+<view class="ns-page">
+  <view wx:for="{{items}}" wx:key="id" class="ns-card ann__card">
+    <view class="ann__title">{{item.title}}</view>
+    <view class="ann__content">{{item.content}}</view>
+    <view class="ns-hint ann__time">{{item.timeText}}</view>
+  </view>
+
+  <view wx:if="{{firstLoading}}" class="ns-card ann__card">
+    <view class="ns-skeleton" style="height: 30rpx; width: 55%;"></view>
+    <view class="ns-skeleton" style="height: 24rpx; width: 90%; margin-top: 16rpx;"></view>
+  </view>
+
+  <empty-state
+    wx:if="{{!firstLoading && !items.length}}"
+    icon="notification"
+    text="还没有公告"
+    sub="物业发布的重要通知会出现在这里"
+    actionText="返回首页"
+    bind:action="goHome"
+  />
+
+  <view wx:if="{{finished && items.length}}" class="ns-list-footer">没有更多了</view>
+</view>

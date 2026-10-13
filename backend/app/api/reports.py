@@ -18,15 +18,27 @@ def create_report(
 ):
     if payload.target_type not in ("item", "message", "user"):
         raise bad_request("举报对象类型不合法")
-    if payload.target_type == "item" and db.get(Item, payload.target_id) is None:
-        raise not_found("举报对象不存在")
-    if payload.target_type == "message" and db.get(ItemMessage, payload.target_id) is None:
-        raise not_found("举报对象不存在")
-    if payload.target_type == "user" and db.get(User, payload.target_id) is None:
-        raise not_found("举报对象不存在")
+    # 归属 = 被举报目标所属小区（谁的内容谁的小区处置，docs/07 §4.4）；超管全局兜底
+    target_community_id: int | None = None
+    if payload.target_type == "item":
+        target = db.get(Item, payload.target_id)
+        if target is None:
+            raise not_found("举报对象不存在")
+        target_community_id = target.community_id
+    elif payload.target_type == "message":
+        msg = db.get(ItemMessage, payload.target_id)
+        if msg is None:
+            raise not_found("举报对象不存在")
+        item = db.get(Item, msg.item_id)
+        target_community_id = item.community_id if item else None
+    else:
+        target = db.get(User, payload.target_id)
+        if target is None:
+            raise not_found("举报对象不存在")
+        target_community_id = target.community_id
     db.add(
         Report(
-            community_id=user.community_id,
+            community_id=target_community_id,
             reporter_id=user.id,
             target_type=payload.target_type,
             target_id=payload.target_id,

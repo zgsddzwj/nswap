@@ -12,19 +12,33 @@ interface Gratitude {
   created_at: string;
 }
 
+interface Announcement {
+  id: number;
+  title: string;
+  content: string;
+  created_at: string;
+}
+
 interface ItemCardData {
   id: number;
   type: string;
   title: string;
   cover: string | null;
   status: string;
+  building: string;
+  community_name: string;
   [k: string]: any;
 }
+
+type Scope = "community" | "city";
 
 Page({
   data: {
     me: null as Me | null,
     verified: true,
+    joined: true, // 是否已加入小区（verified 即已加入）
+    scope: "community" as Scope,
+    announcement: null as Announcement | null,
     gratitudes: [] as Gratitude[],
     buildings: [] as string[],
     filters: { type: "", category: "", building: "" },
@@ -45,11 +59,19 @@ Page({
   onShow() {
     refreshMe().then((me) => {
       if (!me) return;
-      this.setData({ me, verified: !!me.user.verified });
+      const joined = !!me.user.community_id || !!me.user.verified;
+      const scope: Scope = joined ? this.data.scope : "city";
+      this.setData({ me, verified: !!me.user.verified, joined, scope });
       if (me.community && me.community.name) {
         wx.setNavigationBarTitle({ title: me.community.name });
       }
-      if (me.user.verified && !this.data.buildings.length) this.loadBuildings();
+      if (joined) {
+        this.loadAnnouncements();
+        if (!this.data.buildings.length) this.loadBuildings();
+      } else {
+        this.setData({ announcement: null, buildings: [] });
+      }
+      this.refreshItems();
     });
     refreshUnreadBadge();
   },
@@ -59,11 +81,12 @@ Page({
       limit: 20,
       fetch: (cursor, limit) => {
         const f = this.data.filters;
-        const params: Record<string, any> = { limit };
+        const params: Record<string, any> = { limit, scope: this.data.scope };
         if (cursor) params.cursor = cursor;
         if (f.type) params.type = f.type as ItemType;
         if (f.category) params.category = f.category;
-        if (f.building) params.building = f.building;
+        // 楼栋筛选仅本小区模式有意义
+        if (f.building && this.data.scope === "community") params.building = f.building;
         return get<{ list: ItemCardData[]; next_cursor: string | null }>("/api/items", params);
       },
       onUpdate: (state) => {
@@ -75,8 +98,20 @@ Page({
       },
       onError: () => this.setData({ loadError: true }),
     });
-    // 触发首屏
-    this.loader.refresh().then(() => this.setData({ firstLoading: false }));
+  },
+
+  refreshItems() {
+    this.setData({ firstLoading: true, loadError: false });
+    this.loader!.refresh().then(() => this.setData({ firstLoading: false }));
+  },
+
+  async loadAnnouncements() {
+    try {
+      const r = await get<{ list: Announcement[] }>("/api/announcements", { limit: 1 });
+      this.setData({ announcement: (r.list || [])[0] || null });
+    } catch {
+      this.setData({ announcement: null });
+    }
   },
 
   async loadGratitudes() {
@@ -97,9 +132,20 @@ Page({
     }
   },
 
+  onScopeTap(e: WechatMiniprogram.TouchEvent) {
+    const scope = e.currentTarget.dataset.scope as Scope;
+    if (scope === this.data.scope) return;
+    this.setData({ scope });
+    this.refreshItems();
+  },
+
+  goAnnouncements() {
+    wx.navigateTo({ url: "/pages/announcements/announcements" });
+  },
+
   onFiltersChange(e: WechatMiniprogram.CustomEvent<{ type: string; category: string; building: string }>) {
-    this.setData({ filters: e.detail, firstLoading: true, loadError: false });
-    this.loader!.refresh().then(() => this.setData({ firstLoading: false }));
+    this.setData({ filters: e.detail });
+    this.refreshItems();
   },
 
   goSearch() {
@@ -127,8 +173,12 @@ Page({
     Promise.all([
       this.loader!.refresh(),
       this.loadGratitudes(),
+      this.data.joined ? this.loadAnnouncements() : Promise.resolve(),
       refreshMe().then((me) => {
-        if (me) this.setData({ me, verified: !!me.user.verified });
+        if (me) {
+          const joined = !!me.user.community_id || !!me.user.verified;
+          this.setData({ me, verified: !!me.user.verified, joined });
+        }
       }),
     ]).finally(() => {
       this.setData({ firstLoading: false });
@@ -141,8 +191,7 @@ Page({
   },
 
   onRetry() {
-    this.setData({ firstLoading: true, loadError: false });
-    this.loader!.refresh().then(() => this.setData({ firstLoading: false }));
+    this.refreshItems();
   },
 
   onShareAppMessage() {

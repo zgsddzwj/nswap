@@ -15,18 +15,91 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app.core.security import hash_password  # noqa: E402
 from app.core.time import utcnow  # noqa: E402
 from app.db import Base, SessionLocal, engine  # noqa: E402
-from app.models import AdminUser, Community, Invite, Item, User  # noqa: E402
+from app.models import AdminUser, Announcement, Community, Invite, Item, User  # noqa: E402
 
 
 def ensure_community(db) -> Community:
     c = db.query(Community).order_by(Community.id).first()
     if c is None:
-        c = Community(name="阳光花园", address="示例地址 88 号")
+        c = Community(name="阳光花园", city="示例市", district="高新区", address="示例地址 88 号")
         db.add(c)
         db.commit()
         db.refresh(c)
         print(f"[OK] 创建社区: {c.name} (id={c.id})")
     return c
+
+
+def ensure_property_admin(db, community: Community) -> None:
+    if db.query(AdminUser).filter(AdminUser.username == "wy_admin").first() is None:
+        db.add(
+            AdminUser(
+                username="wy_admin",
+                password_hash=hash_password("nswap123"),
+                name="阳光花园物业",
+                community_id=community.id,
+            )
+        )
+        db.commit()
+        print("[OK] 创建物业管理员: wy_admin / nswap123（演示用，请勿上线使用）")
+
+
+def ensure_second_community(db) -> None:
+    """同城演示小区「幸福里」：用于验证同城浏览与跨小区交易。"""
+    if db.query(Community).filter(Community.name == "幸福里").first() is not None:
+        return
+    c = Community(name="幸福里", city="示例市", district="高新区", address="示例路 66 号")
+    db.add(c)
+    db.commit()
+    db.refresh(c)
+    print(f"[OK] 创建同城演示社区: {c.name} (id={c.id})")
+    u = User(
+        openid="dev_dave",
+        nickname="6栋-大伟",
+        building="6栋",
+        community_id=c.id,
+        verified_at=utcnow(),
+    )
+    db.add(u)
+    db.commit()
+    db.refresh(u)
+    print("[OK] 幸福里演示用户: 6栋-大伟 (dev openid=dev_dave)")
+    for type_, title, category, condition, price in [
+        ("sell", "宜家书架 九成新", "furniture", "good", 8000),
+        ("give", "绿植三盆免费送", "other", None, None),
+    ]:
+        db.add(
+            Item(
+                community_id=c.id,
+                user_id=u.id,
+                type=type_,
+                title=title,
+                description="示例数据：幸福里",
+                category=category,
+                condition=condition,
+                price_cents=price,
+                building=u.building,
+                status="on_sale",
+            )
+        )
+    db.add(Invite(community_id=c.id, code="YQ-XFLE0001", kind="normal", building="6栋"))
+    db.add(Invite(community_id=c.id, code="YQ-XFLE0002", kind="normal", building="7栋"))
+    db.commit()
+    print("[OK] 幸福里: 2 件示例物品 + 2 个邀请码（YQ-XFLE0001 起）")
+
+
+def ensure_demo_announcement(db, community: Community) -> None:
+    if db.query(Announcement).count() == 0:
+        admin = db.query(AdminUser).filter(AdminUser.username == "wy_admin").first()
+        db.add(
+            Announcement(
+                community_id=community.id,
+                title="本周六小区闲置交换日",
+                content="本周六 9:00-17:00 在小区中心广场举办闲置交换活动，欢迎邻居们带上家里的闲置来参加！",
+                published_by=admin.id if admin else None,
+            )
+        )
+        db.commit()
+        print("[OK] 创建示例公告: 本周六小区闲置交换日")
 
 
 def ensure_admin(db) -> None:
@@ -132,8 +205,11 @@ def main() -> None:
         ensure_admin(db)
         if args.admin_openid:
             promote_openid(db, args.admin_openid)
+        ensure_property_admin(db, community)
         if not args.skip_demo:
             seed_demo(db, community)
+            ensure_second_community(db)
+            ensure_demo_announcement(db, community)
     finally:
         db.close()
 

@@ -3,10 +3,18 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h5 class="mb-0">邀请码管理</h5>
-  <span class="text-muted small">社区：{{ community.name if community else '未初始化' }}</span>
+  <span class="text-muted small">{{ '全部小区' if admin.community_id is none else '小区：' + (community.name if community else '未绑定') }}</span>
 </div>
 <div class="card mb-4"><div class="card-body">
   <form method="post" action="/admin/invites" class="row g-2 align-items-end">
+    {% if communities %}
+    <div class="col-auto">
+      <label class="form-label small mb-0">目标小区</label>
+      <select name="community_id" class="form-select form-select-sm" required>
+        {% for c in communities %}<option value="{{ c.id }}">{{ c.name }}（{{ c.city }}）</option>{% endfor %}
+      </select>
+    </div>
+    {% endif %}
     <div class="col-auto">
       <label class="form-label small mb-0">楼栋</label>
       <input name="building" class="form-control form-control-sm" placeholder="如 3栋" required>
@@ -28,11 +36,12 @@
 </div></div>
 <div class="card"><div class="card-header">邀请码列表（最近 100 条）</div>
   <table class="table table-sm mb-0">
-    <tr><th>码</th><th>类型</th><th>楼栋</th><th>批次</th><th>状态</th><th>使用者</th><th>过期时间</th><th></th></tr>
+    <tr><th>码</th><th>类型</th>{% if admin.community_id is none %}<th>小区</th>{% endif %}<th>楼栋</th><th>批次</th><th>状态</th><th>使用者</th><th>过期时间</th><th></th></tr>
     {% for inv in invites %}
     <tr>
       <td><code>{{ inv.code }}</code></td>
       <td>{{ '担保码' if inv.kind == 'vouch' else '普通' }}</td>
+      {% if admin.community_id is none %}<td class="small">{{ community_names.get(inv.community_id, inv.community_id) }}</td>{% endif %}
       <td>{{ inv.building }}</td>
       <td>{{ inv.batch_note }}</td>
       <td>

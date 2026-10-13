@@ -70,6 +70,7 @@ def list_items(
     keyword: str | None = None,
     status: str | None = None,
     mine: bool = Query(default=False),
+    scope: str = Query(default="community"),  # community|city（docs/07 §4.3）
     cursor: str | None = None,
     limit: int = Query(default=20, ge=1, le=50),
     user: User = Depends(get_current_user),
@@ -86,22 +87,35 @@ def list_items(
         q = q.order_by(Item.created_at.desc(), Item.id.desc())
         order_ts_col, order_id_col = Item.created_at, Item.id
     else:
-        from app.api.community import get_default_community
-
-        community = get_default_community(db)
-        q = q.filter(
-            Item.community_id == community.id,
-            Item.status.in_(["on_sale", "reserved"]),
-        )
+        q = q.filter(Item.status.in_(["on_sale", "reserved"]))
         # 文本审核降级（pending）内容：仅作者本人与管理员可见
         q = q.filter(
             or_(Item.sec_status == "pass", Item.user_id == user.id, user.role == "admin")
         )
+        if scope == "city":
+            # 同城：本小区所在城市的全部 active 小区；未加入小区的游客可见全部
+            from app.models import Community
+
+            city_q = db.query(Community.id).filter(
+                Community.status == "active", Community.city != ""
+            )
+            if user.community_id:
+                own = db.get(Community, user.community_id)
+                if own and own.city:
+                    city_q = city_q.filter(Community.city == own.city)
+            q = q.filter(Item.community_id.in_(city_q))
+        elif user.community_id:
+            # 本小区（默认）
+            q = q.filter(Item.community_id == user.community_id)
+        else:
+            # 未加入小区：本小区 Tab 返回空
+            return ok({"list": [], "next_cursor": None})
         if type:
             q = q.filter(Item.type == type)
         if category:
             q = q.filter(Item.category == category)
-        if building:
+        if building and scope == "community":
+            # 同城模式无楼栋概念，忽略该筛选（docs/07 §4.3）
             q = q.filter(Item.building == building)
         if keyword:
             like = f"%{keyword.strip()}%"
@@ -124,7 +138,7 @@ def list_items(
         ts = last.created_at if mine else last.last_active_at
         next_cursor = _encode_cursor(ts, last.id)
 
-    return ok({"list": item_cards(db, items, user.id), "next_cursor": next_cursor})
+    return ok({"list": item_cards(db, items, user), "next_cursor": next_cursor})
 
 
 @router.post("/items")
@@ -139,12 +153,11 @@ def create_item(
     if count_active_items(db, user) >= MAX_ACTIVE:
         raise too_many(f"在架物品已达上限（{MAX_ACTIVE} 件），请先下架一些")
 
-    from app.api.community import get_default_community
-
-    community = get_default_community(db)
+    if not user.community_id:
+        raise forbidden("请先完成小区验证")
     sec_status = check_text(db, f"{payload.title}\n{payload.description}", user, "text", None)
     item = Item(
-        community_id=community.id,
+        community_id=user.community_id,
         user_id=user.id,
         type=payload.type,
         title=payload.title.strip(),

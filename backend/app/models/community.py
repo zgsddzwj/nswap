@@ -12,7 +12,10 @@ class Community(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50))
+    city: Mapped[str] = mapped_column(String(50), default="", index=True)  # 同城维度（创建必填）
+    district: Mapped[str] = mapped_column(String(50), default="")
     address: Mapped[str] = mapped_column(String(200), default="")
+    status: Mapped[str] = mapped_column(String(10), default="active")  # active|suspended
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 

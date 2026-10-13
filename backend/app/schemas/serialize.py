@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core.time import iso
 from app.models import (
+    Community,
     Conversation,
     DmMessage,
     Item,
@@ -23,6 +24,27 @@ def ok(data=None):
     return {"code": 0, "message": "ok", "data": data}
 
 
+# ---------- 多社区隐私规则（docs/07 §4.8） ----------
+# 唯一规则：viewer 与目标不同小区 → building 输出空串 + 补 community_name。无例外。
+
+
+def _community_name(db: Session, community_id: int | None) -> str:
+    if not community_id:
+        return ""
+    c = db.get(Community, community_id)
+    return c.name if c else ""
+
+
+def _same_community(viewer: User | None, community_id: int | None) -> bool:
+    if viewer is None or community_id is None:
+        return False
+    return viewer.community_id == community_id
+
+
+def _building_for(viewer: User | None, owner: User) -> str:
+    return owner.building if _same_community(viewer, owner.community_id) else ""
+
+
 # ---------- user ----------
 
 def user_stats(u: User) -> dict:
@@ -38,12 +60,13 @@ def user_stats(u: User) -> dict:
     }
 
 
-def user_summary(u: User) -> dict:
+def user_summary(u: User, db: Session | None = None, viewer: User | None = None) -> dict:
     return {
         "id": u.id,
         "nickname": u.nickname,
         "avatar_url": u.avatar_url,
-        "building": u.building,
+        "building": _building_for(viewer, u) if db is not None else u.building,
+        "community_name": _community_name(db, u.community_id) if db is not None else "",
         "verified": u.verified,
         "role": u.role,
         "stats": user_stats(u),
@@ -54,13 +77,13 @@ def user_summary(u: User) -> dict:
 def me_payload(db: Session, user: User) -> dict:
     community = None
     if user.community_id:
-        from app.models import Community
-
         c = db.get(Community, user.community_id)
         if c:
             community = {
                 "id": c.id,
                 "name": c.name,
+                "city": c.city,
+                "district": c.district,
                 "verified_count": db.query(User).filter(
                     User.community_id == c.id, User.verified_at.is_not(None)
                 ).count(),
@@ -106,7 +129,7 @@ def _visible_images(db: Session, item_ids: list[int]) -> dict[int, list[str]]:
     return result
 
 
-def item_card(item: Item, images: list[str] | None, viewer_id: int | None) -> dict:
+def item_card(db: Session, item: Item, images: list[str] | None, viewer: User | None) -> dict:
     return {
         "id": item.id,
         "type": item.type,
@@ -115,26 +138,27 @@ def item_card(item: Item, images: list[str] | None, viewer_id: int | None) -> di
         "negotiable": item.negotiable,
         "category": item.category,
         "condition": item.condition,
-        "building": item.building,
+        "building": item.building if _same_community(viewer, item.community_id) else "",
+        "community_name": _community_name(db, item.community_id),
         "status": item.status,
         "cover": images[0] if images else None,
         "want_count": item.want_count,
         "view_count": item.view_count,
         "created_at": iso(item.created_at),
         "last_active_at": iso(item.last_active_at),
-        "is_mine": viewer_id is not None and item.user_id == viewer_id,
+        "is_mine": viewer is not None and item.user_id == viewer.id,
     }
 
 
-def item_cards(db: Session, items: list[Item], viewer_id: int | None) -> list[dict]:
+def item_cards(db: Session, items: list[Item], viewer: User | None) -> list[dict]:
     images_map = _visible_images(db, [i.id for i in items])
-    return [item_card(i, images_map.get(i.id), viewer_id) for i in items]
+    return [item_card(db, i, images_map.get(i.id), viewer) for i in items]
 
 
 def item_detail(db: Session, item: Item, viewer: User | None) -> dict:
     images = _visible_images(db, [item.id]).get(item.id, [])
     seller = db.get(User, item.user_id)
-    data = item_card(item, images, viewer.id if viewer else None)
+    data = item_card(db, item, images, viewer)
     data.update(
         {
             "description": item.description,
@@ -142,7 +166,7 @@ def item_detail(db: Session, item: Item, viewer: User | None) -> dict:
             "bid_cents": item.bid_cents,
             "images": images,
             "message_count": _message_count(db, item.id),
-            "seller": user_summary(seller) if seller else None,
+            "seller": user_summary(seller, db, viewer) if seller else None,
         }
     )
     if viewer is None:
@@ -210,6 +234,11 @@ def trade_dto(db: Session, trade: Transaction, viewer: User) -> dict:
     my_role = "owner" if trade.owner_id == viewer.id else "other"
     counterpart_id = trade.other_id if my_role == "owner" else trade.owner_id
     counterpart = db.get(User, counterpart_id)
+    owner_user = db.get(User, trade.owner_id)
+    other_user = db.get(User, trade.other_id)
+    cross_community = bool(
+        owner_user and other_user and owner_user.community_id != other_user.community_id
+    )
     want = db.get(ItemWant, trade.want_id) if trade.want_id else None
     reviews = db.query(Review).filter(Review.transaction_id == trade.id).all()
     my_review = next((r for r in reviews if r.from_user_id == viewer.id), None)
@@ -229,8 +258,9 @@ def trade_dto(db: Session, trade: Transaction, viewer: User) -> dict:
             if item
             else None
         ),
-        "counterpart": user_summary(counterpart) if counterpart else None,
+        "counterpart": user_summary(counterpart, db, viewer) if counterpart else None,
         "my_role": my_role,
+        "cross_community": cross_community,
         "want": (
             {"message": want.message, "bid_cents": want.bid_cents, "swap_offer": want.swap_offer}
             if want
@@ -277,7 +307,7 @@ def conversation_dto(db: Session, conv: Conversation, viewer: User) -> dict:
             if item
             else None
         ),
-        "counterpart": user_summary(counterpart) if counterpart else None,
+        "counterpart": user_summary(counterpart, db, viewer) if counterpart else None,
         "last_message": (
             {"content": last.content, "created_at": iso(last.created_at), "sender_id": last.sender_id}
             if last

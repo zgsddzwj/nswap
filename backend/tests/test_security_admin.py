@@ -118,10 +118,11 @@ def test_report_and_admin_flow(client, db, community, users):
     item = db.get(Item, item_id)
     assert item.status == "archived"
 
-    # 生成邀请码
+    # 生成邀请码（超管需显式选择目标小区）
     r = client.post(
         "/admin/invites",
-        data={"building": "9栋", "count": "3", "days": "14", "batch_note": "测试批次"},
+        data={"building": "9栋", "count": "3", "days": "14", "batch_note": "测试批次",
+              "community_id": str(community.id)},
         follow_redirects=False,
     )
     assert r.status_code == 303

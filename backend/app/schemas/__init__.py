@@ -24,6 +24,7 @@ class JoinRequest(BaseModel):
 
 
 class ManualApplyRequest(BaseModel):
+    community_id: int  # 申请加入的小区（人工审核通道，docs/07 §4.2）
     building: str = Field(min_length=1, max_length=20)
     unit: str = Field(default="", max_length=20)
     proof_image: str = Field(min_length=1, max_length=500)

@@ -282,3 +282,12 @@
 }
 
 .trade__grat-btn { margin-top: 16rpx; }
+
+.trade__method--off {
+  opacity: 0.4;
+}
+
+.trade__cross-tip {
+  margin-top: 12rpx;
+  text-align: center;
+}

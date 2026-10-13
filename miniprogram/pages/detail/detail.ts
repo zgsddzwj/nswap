@@ -51,6 +51,8 @@ Page({  data: {
     priceDec: "",
     conditionLabel: "",
     timeText: "",
+    locationLabel: "",
+    sellerLocation: "",
     sellerRate: "--",
     sellerDone: 0,
     /* 底栏 */
@@ -112,6 +114,8 @@ Page({  data: {
       priceDec: price.dec,
       conditionLabel: d.condition ? CONDITION_MAP[d.condition] || "" : "",
       timeText: relTime(d.created_at),
+      locationLabel: d.building || d.community_name || "",
+      sellerLocation: (d.seller && (d.seller.building || d.community_name)) || "",
       sellerRate: d.seller ? goodRate(d.seller.stats) : "--",
       sellerDone: d.seller ? tradesDone(d.seller.stats) : 0,
       ...footer,

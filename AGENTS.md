@@ -42,6 +42,17 @@ cd miniprogram && npm run typecheck                 # tsc --noEmit，改代码�
   npm 用 `--registry=https://registry.npmmirror.com`；GitHub 直连常超时，克隆用 SSH。
 - 演示身份与 `backend/scripts/seed.py` 一致：`dev_alice` / `dev_bob` / `dev_carol`（下划线）。
 
+## 多社区 SaaS 要点（feat/saas-multitenant 起）
+
+- 小区 = 租户：`communities.status`(active/suspended)、`city` 为同城维度（空值不出现在同城）。
+- feed 双 scope：`/api/items?scope=community|city`；未加入小区用户 community=空、city=全量。
+- **跨小区隐私唯一规则**：viewer 与目标不同小区 → 所有序列化 building 输出空串 + community_name
+  （serialize.py 的 `_same_community/_building_for/_community_name`）。新增带 user_summary/item_card
+  的接口必须传 viewer，否则楼栋泄露。
+- 跨小区交易仅允许 `place_method=face`（trades.py 校验）；举报归属=被举报目标小区。
+- admin 两级分权：AdminUser.community_id（NULL=超管）。物业路由守卫 403；写操作校验目标归属。
+- 新页面加 user_summary 时若忘记传 viewer，跑 `pytest tests/test_multitenant.py` 会失败。
+
 ## 硬性规则
 
 1. **合规文案**：全局禁止出现「购买/下单/订单/支付/购物车」，统一用「交换/赠送/约定/意向」；

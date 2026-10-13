@@ -60,6 +60,42 @@
 
     <!-- 人工审核 -->
     <view wx:else class="ns-card">
+      <view class="verify__label">所在小区</view>
+      <block wx:if="{{selectedCommunity}}">
+        <view class="verify__community-chosen">
+          <view>
+            <view class="verify__community-name">{{selectedCommunity.name}}</view>
+            <view class="ns-hint">{{selectedCommunity.city}}</view>
+          </view>
+          <view class="verify__community-change" hover-class="verify__copy--hover" bindtap="onRestartCommunitySearch">重选</view>
+        </view>
+      </block>
+      <block wx:else>
+        <view class="verify__search-row">
+          <input
+            class="verify__code-input verify__code-input--sm"
+            value="{{communityKw}}"
+            placeholder="输入小区名称搜索"
+            bindinput="onCommunityKw"
+            bindconfirm="onSearchCommunities"
+          />
+          <view class="verify__search-btn" hover-class="verify__copy--hover" bindtap="onSearchCommunities">搜索</view>
+        </view>
+        <view wx:if="{{communityResults.length}}" class="verify__community-list">
+          <view
+            wx:for="{{communityResults}}"
+            wx:key="id"
+            class="verify__community-item"
+            hover-class="verify__copy--hover"
+            data-index="{{index}}"
+            bindtap="onPickCommunity"
+          >
+            <text>{{item.name}}</text>
+            <text class="ns-hint">{{item.city}}{{item.district ? ' · ' + item.district : ''}}</text>
+          </view>
+        </view>
+      </block>
+
       <view class="verify__label">楼栋</view>
       <view wx:if="{{buildings.length}}">
         <picker range="{{buildings}}" bindchange="onManualBuildingPick">

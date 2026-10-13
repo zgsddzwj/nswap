@@ -18,7 +18,7 @@ app/
 ├── services/        # wechat(mock/cloud/token 三模式) sec_check(先检后发+降级) credit(信用)
 │                    #   expiry(沉底/归档) notify(站内通知必达+订阅消息增强)
 └── core/            # config(.env) deps(三级鉴权) errors(ApiError) security password/openid time(ISO UTC)
-alembic/versions/    # f91b070d8b1d(初始) → b7d2e4a91c58(联系方式交换)；新迁移挂链尾
+alembic/versions/    # f91b070d8b1d(初始) → b7d2e4a91c58(联系方式交换) → c5f8d3e27a91(多社区SaaS)；新迁移挂链尾
 tests/               # pytest + TestClient，sqlite + mock；conftest 提供 client/db/community/users/hdr/publish
 scripts/seed.py      # 建表(Base.metadata.create_all)+社区+admin+演示用户/物品/邀请码（幂等）
 ```

@@ -33,10 +33,11 @@
   <div class="col-auto"><button class="btn btn-sm btn-dark">搜索</button></div>
 </form>
 <div class="card"><table class="table table-sm mb-0">
-  <tr><th>#</th><th>昵称</th><th>楼栋</th><th>角色</th><th>验证</th><th>状态</th><th>交易</th><th>违约</th><th>注册时间</th><th></th></tr>
+  <tr><th>#</th>{% if admin.community_id is none %}<th>小区</th>{% endif %}<th>昵称</th><th>楼栋</th><th>角色</th><th>验证</th><th>状态</th><th>交易</th><th>违约</th><th>注册时间</th><th></th></tr>
   {% for u in users %}
   <tr>
     <td>{{ u.id }}</td>
+    {% if admin.community_id is none %}<td class="small">{{ community_names.get(u.community_id, '未加入') }}</td>{% endif %}
     <td>{{ u.nickname }}</td>
     <td>{{ u.building or '-' }}</td>
     <td>{{ u.role }}</td>

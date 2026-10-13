@@ -52,4 +52,4 @@ def list_favorites(
     favs = favs[:limit]
     items = [db.get(Item, f.item_id) for f in favs]
     items = [i for i in items if i is not None]
-    return ok({"list": item_cards(db, items, user.id), "next_cursor": next_cursor})
+    return ok({"list": item_cards(db, items, user), "next_cursor": next_cursor})

@@ -6,6 +6,7 @@ from app.models.trade import Transaction, Review, Gratitude
 from app.models.system import (
     AdminLog,
     AdminUser,
+    Announcement,
     MsgSubscription,
     Notification,
     Report,
@@ -19,5 +20,5 @@ __all__ = [
     "Conversation", "DmMessage", "ContactExchange",
     "Transaction", "Review", "Gratitude",
     "Report", "SecCheck", "Notification", "MsgSubscription",
-    "AdminUser", "AdminLog",
+    "AdminUser", "AdminLog", "Announcement",
 ]

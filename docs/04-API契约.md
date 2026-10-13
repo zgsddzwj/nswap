@@ -306,3 +306,17 @@ mediaCheckAsync 结果回调：按 trace_id 更新 sec_checks 与 item_images.se
   - 未交换、或对方未开放/未填写时 `contact` 恒为 `null`（不泄露）
 - `POST /api/conversations/{id}/contact`（需已验证）→ 同上结构
   - 对方未开放 → 400（不扣额度）；当日额度用尽 → 429；已交换过 → 幂等返回不扣额度
+
+## 3.13 多社区 SaaS（docs/07）
+
+- **`GET /api/items` 新增 `scope`**：`community`(默认)｜`city`。community=本小区（未加入→空列表）；
+  city=同城 active 小区（未加入→全部小区）；city 模式忽略 building 筛选。
+- **序列化**：`item_card`/`user_summary` 新增 `community_name`；跨小区 viewer 时 `building` 输出空串。
+- **`GET /api/community/info`**：未加入返回 `{"joined": false, ...空结构}`（HTTP 200）；已加入补 `city`/`district`；`buildings` 仅本小区。
+- **`POST /api/community/manual-apply`** 请求体新增 `community_id`（必填）。
+- **新增 `GET /api/communities?keyword=`**：公开小区查询（id/name/city/district，不含地址），人工审核选小区用。
+- **`GET /api/announcements?cursor&limit`**：本小区公告列表（游客/外小区为空）。
+- **`GET /api/trades`** 的 trade_dto 新增 `cross_community: bool`；跨小区 `arrange` 仅允许 `place_method=face`（否则 400）。
+- **举报归属**：`reports.community_id` 改为被举报目标所属小区。
+- **感谢帖**：仅返回本小区。
+- 管理后台两级分权（平台超管/物业管理员）为 Web SSR，接口不在本契约范围，见 docs/07 §5。

@@ -9,6 +9,7 @@ interface ItemCard {
   negotiable?: boolean;
   condition?: string | null;
   building: string;
+  community_name: string;
   status: string;
   cover: string | null;
   created_at: string;
@@ -21,7 +22,9 @@ function buildCard(item: ItemCard) {
   const dimmed = item.status === "completed" || item.status === "archived" || item.status === "sunk";
   const showStatus = item.status && item.status !== "on_sale";
   const parts: string[] = [];
-  if (item.building) parts.push(item.building);
+  // 跨小区时后端置空 building 并补 community_name（docs/07 §4.8）
+  const location = item.building || item.community_name || "";
+  if (location) parts.push(location);
   if (item.condition && CONDITION_MAP[item.condition]) parts.push(CONDITION_MAP[item.condition]);
   const time = relTime(item.last_active_at || item.created_at);
   if (time) parts.push(time);

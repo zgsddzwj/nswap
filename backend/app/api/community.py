@@ -18,30 +18,70 @@ from app.schemas.serialize import me_payload, ok
 router = APIRouter(tags=["community"])
 
 
-def get_default_community(db: Session) -> Community:
-    c = db.query(Community).order_by(Community.id).first()
-    if c is None:
-        raise not_found("社区未初始化，请联系管理员")
-    return c
+@router.get("/communities")
+def search_communities(
+    keyword: str = "",
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """公开小区查询（人工审核选小区用）：只返回名称/城市/区，不含精确地址。"""
+    q = db.query(Community).filter(Community.status == "active")
+    if keyword.strip():
+        q = q.filter(Community.name.like(f"%{keyword.strip()}%"))
+    rows = q.order_by(Community.id.desc()).limit(20).all()
+    return ok(
+        {
+            "list": [
+                {"id": c.id, "name": c.name, "city": c.city, "district": c.district}
+                for c in rows
+            ]
+        }
+    )
 
 
 @router.get("/community/info")
 def community_info(
     user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
-    c = get_default_community(db)
+    """当前用户已加入的小区信息；未加入返回 joined=false 的空结构。"""
+    c = db.get(Community, user.community_id) if user.community_id else None
+    if c is None:
+        return ok(
+            {
+                "joined": False,
+                "id": None,
+                "name": "",
+                "address": "",
+                "city": "",
+                "district": "",
+                "verified_count": 0,
+                "item_count": 0,
+                "buildings": [],
+            }
+        )
     buildings = [
         r[0]
-        for r in db.query(Invite.building).filter(Invite.building != "").distinct().all()
+        for r in db.query(Invite.building)
+        .filter(Invite.community_id == c.id, Invite.building != "")
+        .distinct()
+        .all()
     ]
-    for u in db.query(User.building).filter(User.building != "").distinct().all():
+    for u in (
+        db.query(User.building)
+        .filter(User.community_id == c.id, User.building != "")
+        .distinct()
+        .all()
+    ):
         if u[0] not in buildings:
             buildings.append(u[0])
     return ok(
         {
+            "joined": True,
             "id": c.id,
             "name": c.name,
             "address": c.address,
+            "city": c.city,
+            "district": c.district,
             "verified_count": db.query(User)
             .filter(User.community_id == c.id, User.verified_at.is_not(None))
             .count(),
@@ -73,6 +113,8 @@ def join_by_code(
         raise not_found("邀请码已被使用")
 
     community = db.get(Community, invite.community_id)
+    if community is None or community.status != "active":
+        raise not_found("该小区暂未开放加入")
     user.community_id = invite.community_id
     user.building = invite.building or user.building
     user.verified_at = utcnow()
@@ -137,7 +179,9 @@ def manual_apply(
     )
     if pending:
         raise conflict("你已提交过申请，请耐心等待管理员审核")
-    community = get_default_community(db)
+    community = db.get(Community, payload.community_id) if payload.community_id else None
+    if community is None or community.status != "active":
+        raise bad_request("请选择要加入的小区")
     db.add(
         VerifyRequest(
             user_id=user.id,

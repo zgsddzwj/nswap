@@ -30,7 +30,7 @@ def get_profile(
     )
     return ok(
         {
-            "user": user_summary(target),
-            "items": item_cards(db, active_items, user.id),
+            "user": user_summary(target, db, user),
+            "items": item_cards(db, active_items, user),
         }
     )

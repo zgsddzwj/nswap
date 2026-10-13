@@ -82,7 +82,7 @@
           <view
             wx:for="{{placeMethods}}"
             wx:key="*this"
-            class="trade__method {{placeMethod === item ? 'trade__method--on' : ''}}"
+            class="trade__method {{placeMethod === item ? 'trade__method--on' : ''}} {{t.cross_community && item !== 'face' ? 'trade__method--off' : ''}}"
             data-method="{{item}}"
             bindtap="onPickMethod"
           >
@@ -109,7 +109,8 @@
 
         <input class="trade__note" value="{{placeNote}}" placeholder="地点备注（选填），如：3栋东门快递架" maxlength="100" bindinput="onNote" />
 
-        <view class="ns-btn ns-btn--primary trade__save" hover-class="ns-btn--hover" bindtap="onSaveArrange">保存约定</view>
+        <view wx:if="{{t.cross_community}}" class="ns-hint trade__cross-tip">跨小区交换仅支持当面交接</view>
+      <view class="ns-btn ns-btn--primary trade__save" hover-class="ns-btn--hover" bindtap="onSaveArrange">保存约定</view>
       </block>
     </view>
 

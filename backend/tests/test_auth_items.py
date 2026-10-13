@@ -4,14 +4,23 @@ from app.models import Invite
 from tests.conftest import hdr, make_user, publish
 
 
-def test_login_auto_creates_guest(client, community):
+def test_login_auto_creates_guest(client, community, users):
     r = client.post("/api/auth/login", headers=hdr("dev_new"))
     assert r.status_code == 200
     data = r.json()["data"]
     assert data["user"]["verified"] is False
     assert data["community"] is None  # 未验证用户无社区归属
     r = client.get("/api/community/info", headers=hdr("dev_new"))
-    assert r.json()["data"]["name"] == "阳光花园"
+    info = r.json()["data"]
+    assert info["joined"] is False and info["name"] == ""  # 未加入小区返回空结构（docs/07 §4.7）
+    # 先由已验证住户发布一件物品
+    assert publish(client, "dev_alice", type="give", title="免费绘本",
+                   price_cents=None, condition=None, category="book").status_code == 200
+    # 游客：本小区 feed 为空，同城 feed 可见全部
+    r = client.get("/api/items?scope=community", headers=hdr("dev_new"))
+    assert r.json()["data"]["list"] == []
+    r = client.get("/api/items?scope=city", headers=hdr("dev_new"))
+    assert len(r.json()["data"]["list"]) == 1
 
 
 def test_guest_cannot_publish(client, db, community):

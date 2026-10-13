@@ -27,7 +27,7 @@
         <view class="ns-grow">
           <view class="ns-row">
             <text class="ns-h2">{{user.nickname}}</text>
-            <view wx:if="{{user.verified}}" class="profile__badge" style="color: var(--ns-brand); background: var(--ns-brand-light);">{{user.building}} · 已验证邻居</view>
+            <view wx:if="{{user.verified}}" class="profile__badge" style="color: var(--ns-brand); background: var(--ns-brand-light);">{{user.building || user.community_name}} · 已验证邻居</view>
           </view>
           <view class="ns-hint profile__joined">{{joined}} 加入</view>
         </view>

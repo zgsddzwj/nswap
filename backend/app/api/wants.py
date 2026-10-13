@@ -115,7 +115,7 @@ def list_wants(
                     "swap_offer": w.swap_offer,
                     "status": w.status,
                     "created_at": iso(w.created_at),
-                    "user": user_summary(users[w.user_id]) if w.user_id in users else None,
+                    "user": user_summary(users[w.user_id], db, user) if w.user_id in users else None,
                 }
                 for w in wants
             ]

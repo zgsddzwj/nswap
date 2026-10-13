@@ -56,7 +56,7 @@
       <!-- 标签行 -->
       <view class="detail__chips">
         <view wx:if="{{conditionLabel}}" class="detail__chip">{{conditionLabel}}</view>
-        <view class="detail__chip">{{d.building}}</view>
+        <view class="detail__chip">{{locationLabel}}</view>
         <view class="detail__chip">{{d.view_count}} 次浏览</view>
         <view class="detail__chip">{{timeText}} 发布</view>
       </view>
@@ -75,7 +75,7 @@
       <view class="ns-grow">
         <view class="ns-row">
           <text class="detail__seller-name">{{d.seller.nickname}}</text>
-          <view wx:if="{{d.seller.verified}}" class="detail__badge" style="color: var(--ns-brand); background: var(--ns-brand-light);">{{d.seller.building}} · 已验证</view>
+          <view wx:if="{{d.seller.verified}}" class="detail__badge" style="color: var(--ns-brand); background: var(--ns-brand-light);">{{sellerLocation}} · 已验证</view>
         </view>
         <view class="ns-hint detail__seller-meta">成交 {{sellerDone}} · 好评 {{sellerRate}} · 被感谢 {{d.seller.stats.thanks_count}}</view>
       </view>
