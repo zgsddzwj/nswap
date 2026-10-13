@@ -12,6 +12,13 @@ interface ChatMessage {
   timeText?: string;
 }
 
+interface ContactStatus {
+  exchanged: boolean;
+  remaining_today: number;
+  counterpart: { id: number; nickname: string; building: string };
+  contact: { wechat: string | null; phone: string | null } | null;
+}
+
 const POLL_INTERVAL = 5000;
 
 Page({
@@ -25,6 +32,10 @@ Page({
     sending: false,
     tradeId: 0,
     scrollInto: "",
+    /* 联系方式交换 */
+    contact: null as ContactStatus | null,
+    showContactSheet: false,
+    exchanging: false,
   },
 
   convId: 0,
@@ -82,6 +93,7 @@ Page({
       const r = await get<{ list: any[] }>(`/api/conversations/${this.convId}/messages`);
       this.applyMessages(r.list || [], true);
       this.setData({ loading: false });
+      this.loadContactStatus();
       if (!this.tradeId) this.lookupTrade();
       this.startPolling();
     } catch (e) {
@@ -180,5 +192,50 @@ Page({
     if (this.data.tradeId) {
       wx.navigateTo({ url: `/pages/trade/trade?id=${this.data.tradeId}` });
     }
+  },
+
+  /* ---------------- 联系方式交换 ---------------- */
+
+  async loadContactStatus() {
+    try {
+      const c = await get<ContactStatus>(`/api/conversations/${this.convId}/contact`);
+      this.setData({ contact: c });
+    } catch {
+      /* 状态加载失败不影响聊天 */
+    }
+  },
+
+  openContactSheet() {
+    this.setData({ showContactSheet: true });
+  },
+
+  closeContactSheet() {
+    this.setData({ showContactSheet: false });
+  },
+
+  onVisibleChangeContact(e: WechatMiniprogram.CustomEvent<{ visible: boolean }>) {
+    if (e.detail.visible === false) this.setData({ showContactSheet: false });
+  },
+
+  async doExchange() {
+    if (this.data.exchanging) return;
+    this.setData({ exchanging: true });
+    try {
+      const c = await post<ContactStatus>(`/api/conversations/${this.convId}/contact`);
+      this.setData({ contact: c, showContactSheet: false, exchanging: false });
+      wx.showToast({ title: "已交换，注意隐私安全", icon: "none", duration: 2200 });
+    } catch (e) {
+      this.setData({ showContactSheet: false, exchanging: false });
+      toastError(e);
+    }
+  },
+
+  onCopyContact(e: WechatMiniprogram.TouchEvent) {
+    const value = e.currentTarget.dataset.value as string;
+    if (!value) return;
+    wx.setClipboardData({
+      data: value,
+      success: () => wx.showToast({ title: "已复制", icon: "none" }),
+    });
   },
 });

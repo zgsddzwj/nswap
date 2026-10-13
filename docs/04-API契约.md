@@ -294,3 +294,15 @@ mediaCheckAsync 结果回调：按 trace_id 更新 sec_checks 与 item_images.se
 | /admin/sec-checks | GET | 内容安全回调记录 |
 
 动作均记录 admin_logs。默认账号 `admin / nswap123`（seed 建立，**上线必改**）。
+
+## 3.12 联系方式交换（新增）
+
+隐私策略：用户在「我的」主动填写并开启「允许交换」后才可被交换查看（默认不开放）；交换入口仅在轻会话内（意向被接受后），发起方须为已验证住户；每会员每日可发起 3 次（UTC 日重置），同会话幂等不重复扣费；一次交换双向解锁，双方均收到 `contact_exchanged` 通知并留有审计记录（contact_exchanges 表）。联系方式字段绝不出现在用户/物品/会话等任何既有序列化中。
+
+- `GET /api/me/contact` → `{ "contact_enabled", "contact_wechat", "contact_phone" }`（仅本人）
+- `PUT /api/me/contact` 请求 `{ "contact_enabled": bool, "contact_wechat": str≤64, "contact_phone": str≤20 }`
+  - 微信号格式 `^[A-Za-z0-9_-]{6,20}$`、手机号 `^1\d{10}$`；开启时至少填一种 → 400
+- `GET /api/conversations/{id}/contact` → `{ "exchanged": bool, "remaining_today": int, "counterpart": {id,nickname,building}, "contact": {wechat,phone} | null }`
+  - 未交换、或对方未开放/未填写时 `contact` 恒为 `null`（不泄露）
+- `POST /api/conversations/{id}/contact`（需已验证）→ 同上结构
+  - 对方未开放 → 400（不扣额度）；当日额度用尽 → 429；已交换过 → 幂等返回不扣额度

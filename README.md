@@ -2,6 +2,8 @@
 
 以小区为单位的「邻里闲置交换站」：出售 / 赠送 / 换物 / 求购四形态，意向自由挑选、双向确认履约、感谢帖与信用档案。平台只做信息撮合与流程留痕，不介入资金。
 
+**联系方式交换**（隐私优先）：住户在「我的」主动填写并开启后（默认不开放），交易双方可在会话内互相交换联系方式；仅已验证住户可发起，每人每日 3 次额度，双向解锁、双向通知、全程留痕，防止爬取与骚扰。
+
 ```
 ├── backend/       FastAPI 后端（17+ 表、内容安全、交易状态机、管理后台、pytest）
 ├── miniprogram/   原生小程序前端（TypeScript + TDesign，17 页 + 5 组件）
@@ -51,6 +53,7 @@ npm run build:td   # 把 tdesign-miniprogram 构建到 miniprogram_npm/
 
 ## 已知事项
 
+- **已有 MySQL 数据的部署升级**：新增了联系方式交换功能（users 3 列 + contact_exchanges 表），需执行 `docker compose exec backend alembic upgrade head`；全新部署/本地 seed 会自动建全表，无需手动迁移。
 - **`GET /api/trades` 必须显式传 `status`**（`ongoing` / `completed` / `cancelled`）——后端不传时返回空列表（现有实现行为），前端已按此处理。
 - **微信 `wx.request` 不支持 PATCH**：后端为 `arrange` 同时提供 `PUT`/`PATCH` 两个路由，小程序走 `PUT`。
 - **云托管上传**：`wx.uploadFile` 直连公网域名无法注入 openid，生产环境上传走 `POST /api/uploads/base64`（callContainer 通道）；本地开发仍用 multipart `POST /api/uploads`。前端自动按模式切换。

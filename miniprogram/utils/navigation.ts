@@ -23,6 +23,7 @@ export function notificationTarget(n: NotificationLike): string | null {
     case "gratitude_received":
       return p.trade_id ? `/pages/trade/trade?id=${p.trade_id}` : null;
     case "chat_message":
+    case "contact_exchanged":
       return p.conversation_id ? `/pages/chat/chat?id=${p.conversation_id}` : null;
     default:
       return null;

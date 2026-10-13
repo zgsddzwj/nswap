@@ -12,6 +12,32 @@
     <view wx:if="{{tradeId}}" class="chat__arrange" hover-class="chat__arrange--hover" catchtap="goTrade">去约定</view>
   </view>
 
+  <!-- 联系方式：已交换 → 联系人卡；未交换 → 交换入口 -->
+  <view wx:if="{{contact && contact.exchanged && contact.contact}}" class="chat__contact">
+    <view class="chat__contact-label">已与 {{contact.counterpart.nickname}} 交换联系方式</view>
+    <view wx:if="{{contact.contact.wechat}}" class="chat__contact-row" data-value="{{contact.contact.wechat}}" bindtap="onCopyContact" hover-class="chat__contact-row--hover">
+      <text class="ns-sub">微信号</text>
+      <text class="chat__contact-val ns-grow">{{contact.contact.wechat}}</text>
+      <t-icon name="edit" size="30rpx" color="var(--ns-ink-3)" />
+      <text class="chat__contact-copy">复制</text>
+    </view>
+    <view wx:if="{{contact.contact.phone}}" class="chat__contact-row" data-value="{{contact.contact.phone}}" bindtap="onCopyContact" hover-class="chat__contact-row--hover">
+      <text class="ns-sub">手机号</text>
+      <text class="chat__contact-val ns-grow">{{contact.contact.phone}}</text>
+      <text class="chat__contact-copy">复制</text>
+    </view>
+    <view class="ns-hint chat__contact-tip">请勿向社区外泄露邻居的联系方式</view>
+  </view>
+  <view wx:elif="{{contact && contact.exchanged && !contact.contact}}" class="chat__contact chat__contact--entry">
+    <t-icon name="info-circle" size="32rpx" color="var(--ns-ink-3)" />
+    <text class="chat__contact-entry-text" style="color: var(--ns-ink-2);">已交换，但 {{contact.counterpart.nickname}} 还没有填写联系方式</text>
+  </view>
+  <view wx:elif="{{contact && !contact.exchanged}}" class="chat__contact chat__contact--entry" hover-class="chat__contact-row--hover" bindtap="openContactSheet">
+    <t-icon name="user" size="32rpx" color="var(--ns-swap)" />
+    <text class="chat__contact-entry-text">交换联系方式（今日剩 {{contact.remaining_today}} 次）</text>
+    <t-icon name="chevron-right" size="32rpx" color="var(--ns-ink-3)" />
+  </view>
+
   <!-- 消息列表 -->
   <scroll-view class="chat__list" scroll-y scroll-into-view="{{scrollInto}}" scroll-with-animation enhanced show-scrollbar="{{false}}">
     <view wx:if="{{!loading && !messages.length}}" class="chat__empty">
@@ -42,4 +68,23 @@
     />
     <view class="chat__send {{input && !sending ? '' : 'chat__send--off'}}" hover-class="chat__send--hover" bindtap="onSend">发送</view>
   </view>
+
+  <!-- 联系方式交换确认弹层 -->
+  <t-popup visible="{{showContactSheet}}" placement="bottom" bind:visible-change="onVisibleChangeContact">
+    <view class="cex">
+      <view class="ns-h2 cex__title">交换联系方式</view>
+      <view class="ns-sub cex__desc">
+        交换后你和 {{contact ? contact.counterpart.nickname : '邻居'}} 都能看到对方的联系方式（仅限本会话双方），双方都会收到通知。
+      </view>
+      <view class="cex__rules">
+        <view class="cex__rule">· 仅限已验证住户（会员）发起</view>
+        <view class="cex__rule">· 每人每日可发起 3 次，本次消耗 1 次</view>
+        <view class="cex__rule">· 若对方未开放联系方式，不会消耗次数</view>
+      </view>
+      <view class="ns-btn ns-btn--primary cex__go {{exchanging ? 'ns-btn--disabled' : ''}}" hover-class="cex__go--hover" bindtap="doExchange">
+        确认交换（今日剩 {{contact ? contact.remaining_today : 0}} 次）
+      </view>
+      <view class="cex__cancel" hover-class="cex__cancel--hover" bindtap="closeContactSheet">再想想</view>
+    </view>
+  </t-popup>
 </view>

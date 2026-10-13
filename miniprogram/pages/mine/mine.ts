@@ -1,9 +1,15 @@
-import { put, toastError } from "../../services/api";
+import { put, get, toastError } from "../../services/api";
 import { Me, getMe, refreshMe, setMe } from "../../services/auth";
 import { setDevOpenid, devOpenid } from "../../services/api";
 import { LOCAL_DEV, ADMIN_URL, DEV_IDENTITIES } from "../../config/index";
 import { uploadImage } from "../../services/upload";
 import { goodRate, tradesDone } from "../../utils/format";
+
+interface ContactSettings {
+  contact_enabled: boolean;
+  contact_wechat: string;
+  contact_phone: string;
+}
 
 Page({
   data: {
@@ -21,6 +27,10 @@ Page({
     editUnit: "",
     avatarTemp: "",
     saving: false,
+    /* 联系方式设置（默认不开放，仅会话内限次交换） */
+    showContact: false,
+    contact: { contact_enabled: false, contact_wechat: "", contact_phone: "" } as ContactSettings,
+    contactSaving: false,
   },
 
   onShow() {
@@ -107,6 +117,59 @@ Page({
       wx.showToast({ title: "已保存", icon: "success" });
     } catch (e) {
       this.setData({ saving: false });
+      toastError(e);
+    }
+  },
+
+  /* ---------------- 联系方式设置 ---------------- */
+
+  openContact() {
+    this.setData({ showContact: true });
+    get<ContactSettings>("/api/me/contact")
+      .then((c) => this.setData({ contact: c }))
+      .catch(() => {
+        /* 保持默认空表单 */
+      });
+  },
+
+  closeContact() {
+    this.setData({ showContact: false });
+  },
+
+  onVisibleChangeContact(e: WechatMiniprogram.CustomEvent<{ visible: boolean }>) {
+    if (e.detail.visible === false) this.setData({ showContact: false });
+  },
+
+  onContactEnabled(e: WechatMiniprogram.CustomEvent<{ value: boolean }>) {
+    this.setData({ "contact.contact_enabled": e.detail.value });
+  },
+
+  onContactWechat(e: WechatMiniprogram.CustomEvent<{ value: string }>) {
+    this.setData({ "contact.contact_wechat": e.detail.value });
+  },
+
+  onContactPhone(e: WechatMiniprogram.CustomEvent<{ value: string }>) {
+    this.setData({ "contact.contact_phone": e.detail.value });
+  },
+
+  async onSaveContact() {
+    if (this.data.contactSaving) return;
+    const c = this.data.contact;
+    if (c.contact_enabled && !c.contact_wechat.trim() && !c.contact_phone.trim()) {
+      wx.showToast({ title: "开启前请至少填写一种联系方式", icon: "none" });
+      return;
+    }
+    this.setData({ contactSaving: true });
+    try {
+      const saved = await put<ContactSettings>("/api/me/contact", {
+        contact_enabled: c.contact_enabled,
+        contact_wechat: c.contact_wechat.trim(),
+        contact_phone: c.contact_phone.trim(),
+      });
+      this.setData({ contact: saved, showContact: false, contactSaving: false });
+      wx.showToast({ title: "联系方式已保存", icon: "success" });
+    } catch (e) {
+      this.setData({ contactSaving: false });
       toastError(e);
     }
   },

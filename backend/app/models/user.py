@@ -21,6 +21,12 @@ class User(Base):
     status: Mapped[str] = mapped_column(String(10), default="active")  # active|banned
     verified_at: Mapped[datetime | None] = mapped_column(DateTime)
 
+    # 联系方式：用户主动填写，默认不开放。仅在轻会话内通过「交换」对交易对方可见，
+    # 永不出现在任何列表/详情序列化中（见 schemas/serialize.py）。
+    contact_wechat: Mapped[str] = mapped_column(String(64), default="")
+    contact_phone: Mapped[str] = mapped_column(String(20), default="")
+    contact_enabled: Mapped[bool] = mapped_column(default=False)
+
     # 信用统计缓存（credit.py 维护，只展示客观数据）
     sell_done: Mapped[int] = mapped_column(default=0)
     give_done: Mapped[int] = mapped_column(default=0)

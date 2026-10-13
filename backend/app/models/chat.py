@@ -30,3 +30,16 @@ class DmMessage(Base):
     sender_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     content: Mapped[str] = mapped_column(String(500))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class ContactExchange(Base):
+    """联系方式交换：会话内发起，一次交换双向解锁，绑定会话全程留痕（一会话一条）。"""
+
+    __tablename__ = "contact_exchanges"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    conversation_id: Mapped[int] = mapped_column(
+        ForeignKey("conversations.id"), unique=True, index=True
+    )
+    initiator_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

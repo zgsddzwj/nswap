@@ -105,6 +105,7 @@ export const NOTIFY_META: Record<string, { icon: string; color: string }> = {
   trade_cancelled: { icon: "error-circle", color: "var(--ns-danger)" },
   review_received: { icon: "star", color: "var(--ns-want)" },
   gratitude_received: { icon: "gift", color: "var(--ns-give)" },
+  contact_exchanged: { icon: "user", color: "var(--ns-swap)" },
   item_sunk: { icon: "notification", color: "var(--ns-ink-2)" },
   system: { icon: "notification", color: "var(--ns-ink-2)" },
 };

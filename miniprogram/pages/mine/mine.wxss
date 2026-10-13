@@ -126,3 +126,46 @@
 }
 
 .edit-sheet__save { margin-top: 40rpx; }
+
+/* 联系方式设置弹层 */
+.contact-sheet {
+  background: var(--ns-card);
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 32rpx 32rpx calc(40rpx + env(safe-area-inset-bottom));
+}
+
+.contact-sheet__title { margin-bottom: 12rpx; }
+
+.contact-sheet__intro {
+  line-height: 1.7;
+  margin-bottom: 24rpx;
+}
+
+.contact-sheet__switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  background: var(--ns-bg);
+}
+
+.contact-sheet__label {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--ns-ink);
+  margin: 24rpx 0 12rpx;
+}
+
+.contact-sheet__switch .contact-sheet__label { margin: 0 0 4rpx; }
+
+.contact-sheet__input {
+  height: 96rpx;
+  padding: 0 28rpx;
+  border-radius: 16rpx;
+  background: var(--ns-bg);
+  font-size: 28rpx;
+  color: var(--ns-ink);
+}
+
+.contact-sheet__save { margin-top: 40rpx; }

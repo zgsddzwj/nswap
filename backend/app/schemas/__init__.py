@@ -9,6 +9,14 @@ class ProfileUpdate(BaseModel):
     unit: str | None = Field(default=None, max_length=20)
 
 
+class ContactSettings(BaseModel):
+    """联系方式设置：用户主动填写，contact_enabled 才会对交易对方开放交换。"""
+
+    contact_enabled: bool = False
+    contact_wechat: str = Field(default="", max_length=64)
+    contact_phone: str = Field(default="", max_length=20)
+
+
 # ---------- community ----------
 
 class JoinRequest(BaseModel):

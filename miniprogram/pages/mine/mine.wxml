@@ -71,6 +71,21 @@
       </view>
     </view>
 
+    <!-- 联系方式（默认隐私） -->
+    <view class="ns-card mine__menu">
+      <view class="ns-cell mine__cell" hover-class="ns-cell--hover" bindtap="openContact">
+        <view class="ns-cell__hd"><t-icon name="user" size="40rpx" color="var(--ns-swap)" /></view>
+        <view class="ns-cell__bd">
+          联系方式
+          <text class="ns-hint" style="margin-left: 12rpx;">默认不开放，仅限会话内交换</text>
+        </view>
+        <view class="ns-cell__ft" style="color: {{contact.contact_enabled ? 'var(--ns-brand)' : 'var(--ns-ink-3)'}};">
+          {{contact.contact_enabled ? '已开放' : '未开放'}}
+        </view>
+        <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
+      </view>
+    </view>
+
     <!-- 管理员 -->
     <view wx:if="{{isAdmin}}" class="ns-card mine__menu">
       <view class="ns-cell mine__cell" hover-class="ns-cell--hover" bindtap="copyAdmin">
@@ -110,6 +125,31 @@
     <view class="ns-hint mine__version">nswap · 邻里闲置交换</view>
   </block>
 </view>
+
+<!-- 联系方式设置弹层 -->
+<t-popup visible="{{showContact}}" placement="bottom" bind:visible-change="onVisibleChangeContact">
+  <view class="contact-sheet">
+    <view class="ns-h2 contact-sheet__title">联系方式</view>
+    <view class="ns-hint contact-sheet__intro">
+      默认不开放。开启后，只有与你建立会话的邻居（意向被你接受后）才能通过「交换」查看，每次交换你会收到通知，且对方每日交换次数有限。
+    </view>
+
+    <view class="contact-sheet__switch">
+      <view>
+        <view class="contact-sheet__label">允许邻居通过交换查看</view>
+        <view class="ns-hint">关闭后任何人无法发起新的交换</view>
+      </view>
+      <t-switch value="{{contact.contact_enabled}}" bind:change="onContactEnabled" />
+    </view>
+
+    <view class="contact-sheet__label">微信号</view>
+    <input class="contact-sheet__input" value="{{contact.contact_wechat}}" placeholder="如 wang_2026（6-20 位字母数字）" bindinput="onContactWechat" />
+    <view class="contact-sheet__label">手机号（选填）</view>
+    <input class="contact-sheet__input" type="number" value="{{contact.contact_phone}}" placeholder="仅填写后才会被交换查看" maxlength="11" bindinput="onContactPhone" />
+
+    <view class="ns-btn ns-btn--primary contact-sheet__save {{contactSaving ? 'ns-btn--disabled' : ''}}" hover-class="ns-btn--hover" bindtap="onSaveContact">保存</view>
+  </view>
+</t-popup>
 
 <!-- 资料编辑弹层 -->
 <t-popup visible="{{showEdit}}" placement="bottom" bind:visible-change="onVisibleChangeEdit">
