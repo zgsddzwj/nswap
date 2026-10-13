@@ -1,7 +1,7 @@
 import { put, toastError } from "../../services/api";
 import { Me, getMe, refreshMe, setMe } from "../../services/auth";
 import { setDevOpenid, devOpenid } from "../../services/api";
-import { LOCAL_DEV, CONFIG, DEV_IDENTITIES } from "../../config/index";
+import { LOCAL_DEV, ADMIN_URL, DEV_IDENTITIES } from "../../config/index";
 import { uploadImage } from "../../services/upload";
 import { goodRate, tradesDone } from "../../utils/format";
 
@@ -14,7 +14,7 @@ Page({
     localDev: LOCAL_DEV,
     identities: DEV_IDENTITIES,
     currentIdentity: "",
-    adminUrl: CONFIG.ADMIN_URL,
+    adminUrl: ADMIN_URL,
     /* 资料编辑弹层 */
     showEdit: false,
     editNickname: "",

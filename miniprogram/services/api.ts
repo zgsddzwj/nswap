@@ -76,7 +76,7 @@ export function request<T = any>(
         fail: () =>
           reject(
             new ApiError(
-              "无法连接本地服务，请确认后端已启动（docker-compose up）",
+              "连不上后端服务：模拟器请确认后端已启动；真机请确认与电脑同一 Wi-Fi、地址为局域网 IP 且已打开调试",
               0,
               0
             )
