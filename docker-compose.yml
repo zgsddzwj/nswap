@@ -1,0 +1,40 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: nswap-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: nswap_root
+      MYSQL_DATABASE: nswap
+      MYSQL_USER: nswap
+      MYSQL_PASSWORD: nswap
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-pnswap_root"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build: ./backend
+    container_name: nswap-backend
+    environment:
+      ENV: dev
+      DATABASE_URL: mysql+pymysql://nswap:nswap@mysql:3306/nswap?charset=utf8mb4
+      PUBLIC_BASE_URL: http://localhost:8000
+      WX_CALL_MODE: mock
+      ADMIN_SESSION_SECRET: dev-secret
+      ENABLE_SCHEDULER: "true"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/uploads:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql_data:

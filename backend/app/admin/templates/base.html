@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}nswap 管理后台{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f5f6f8; }
+    .sidebar { width: 200px; min-height: 100vh; background: #212529; }
+    .sidebar a { color: #adb5bd; text-decoration: none; padding: 12px 20px; display: block; }
+    .sidebar a:hover, .sidebar a.active { color: #fff; background: #343a40; }
+  </style>
+</head>
+<body>
+<div class="d-flex">
+  <nav class="sidebar d-flex flex-column pt-3">
+    <div class="text-white fw-bold px-3 pb-3 mb-2 border-bottom border-secondary">nswap 后台</div>
+    <a href="/admin" class="{{ 'active' if active == 'dashboard' }}">看板</a>
+    <a href="/admin/invites" class="{{ 'active' if active == 'invites' }}">邀请码管理</a>
+    <a href="/admin/items" class="{{ 'active' if active == 'items' }}">内容巡查</a>
+    <a href="/admin/reports" class="{{ 'active' if active == 'reports' }}">举报处置</a>
+    <a href="/admin/users" class="{{ 'active' if active == 'users' }}">用户管理</a>
+    <a href="/admin/sec-checks" class="{{ 'active' if active == 'sec_checks' }}">内容安全记录</a>
+    <div class="mt-auto px-3 pb-3">
+      <form method="post" action="/admin/logout">
+        <button class="btn btn-sm btn-outline-secondary w-100">退出（{{ admin.name or admin.username }}）</button>
+      </form>
+    </div>
+  </nav>
+  <main class="flex-grow-1 p-4">
+    {% if msg %}<div class="alert alert-success py-2">{{ msg }}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+</body>
+</html>

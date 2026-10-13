@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% set active = "users" %}
+{% block content %}
+<h5 class="mb-3">用户管理</h5>
+
+<div class="card mb-4"><div class="card-header">待审核的人工验证申请</div>
+  {% if verify_requests %}
+  <table class="table table-sm mb-0">
+    <tr><th>#</th><th>申请人</th><th>楼栋</th><th>凭证</th><th>申请时间</th><th></th></tr>
+    {% for vr in verify_requests %}
+    <tr>
+      <td>{{ vr.id }}</td>
+      <td>#{{ vr.user_id }} {{ vr_users.get(vr.user_id).nickname if vr_users.get(vr.user_id) else '' }}</td>
+      <td>{{ vr.building }} {{ vr.unit }}</td>
+      <td><a href="{{ vr.proof_image }}" target="_blank">查看凭证</a></td>
+      <td class="small">{{ vr.created_at.strftime('%m-%d %H:%M') }}</td>
+      <td>
+        <form method="post" action="/admin/verify-requests/{{ vr.id }}/approve" class="d-inline">
+          <button class="btn btn-sm btn-success py-0">通过</button>
+        </form>
+        <form method="post" action="/admin/verify-requests/{{ vr.id }}/reject" class="d-inline">
+          <button class="btn btn-sm btn-outline-danger py-0">驳回</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<div class="card-body text-muted small">暂无待审核申请</div>{% endif %}
+</div>
+
+<form class="row g-2 mb-3" method="get" action="/admin/users">
+  <div class="col-auto"><input name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="昵称搜索"></div>
+  <div class="col-auto"><button class="btn btn-sm btn-dark">搜索</button></div>
+</form>
+<div class="card"><table class="table table-sm mb-0">
+  <tr><th>#</th><th>昵称</th><th>楼栋</th><th>角色</th><th>验证</th><th>状态</th><th>交易</th><th>违约</th><th>注册时间</th><th></th></tr>
+  {% for u in users %}
+  <tr>
+    <td>{{ u.id }}</td>
+    <td>{{ u.nickname }}</td>
+    <td>{{ u.building or '-' }}</td>
+    <td>{{ u.role }}</td>
+    <td>{{ '✓' if u.verified_at else '—' }}</td>
+    <td>{{ '封禁' if u.status == 'banned' else '正常' }}</td>
+    <td>{{ u.trades_done }}</td>
+    <td>{{ u.violations }}</td>
+    <td class="small">{{ u.created_at.strftime('%m-%d') }}</td>
+    <td class="text-nowrap">
+      {% if u.status == 'banned' %}
+      <form method="post" action="/admin/users/{{ u.id }}/unban" class="d-inline">
+        <button class="btn btn-sm btn-outline-success py-0">解封</button>
+      </form>
+      {% else %}
+      <form method="post" action="/admin/users/{{ u.id }}/ban" class="d-inline">
+        <button class="btn btn-sm btn-outline-danger py-0">封禁</button>
+      </form>
+      {% endif %}
+      <form method="post" action="/admin/users/{{ u.id }}/elder" class="d-inline">
+        <button class="btn btn-sm btn-outline-secondary py-0">{{ '撤楼长' if u.role == 'elder' else '设楼长' }}</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table></div>
+{% endblock %}

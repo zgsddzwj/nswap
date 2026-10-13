@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% set active = "sec_checks" %}
+{% block content %}
+<h5 class="mb-3">内容安全记录（最近 100 条）</h5>
+<div class="card"><table class="table table-sm mb-0">
+  <tr><th>#</th><th>trace_id</th><th>类型</th><th>对象</th><th>结论</th><th>时间</th></tr>
+  {% for c in checks %}
+  <tr>
+    <td>{{ c.id }}</td>
+    <td class="small">{{ c.trace_id or '-' }}</td>
+    <td>{{ c.target_type }}</td>
+    <td>#{{ c.target_id or '-' }}</td>
+    <td>
+      {% if c.status == 'ok' %}<span class="badge bg-success">通过</span>
+      {% elif c.status == 'risk' %}<span class="badge bg-danger">违规</span>
+      {% elif c.status == 'error' %}<span class="badge bg-warning text-dark">接口异常</span>
+      {% else %}<span class="badge bg-secondary">检测中</span>{% endif %}
+    </td>
+    <td class="small">{{ c.created_at.strftime('%m-%d %H:%M') }}</td>
+  </tr>
+  {% endfor %}
+</table></div>
+{% endblock %}

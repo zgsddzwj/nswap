@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.coverage
+
+# 本地数据库与上传文件
+*.db
+*.sqlite3
+backend/uploads/
+uploads/
+
+# 环境变量
+.env
+.env.local
+.env.prod
+
+# Node / 小程序
+node_modules/
+miniprogram/miniprogram_npm/
+dist/
+
+# 微信开发者工具
+project.private.config.json
+
+# IDE / 系统
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% set active = "dashboard" %}
+{% block content %}
+<h5 class="mb-4">数据看板</h5>
+<div class="row g-3 mb-4">
+  {% for label, value in [
+    ('注册用户', stats.users), ('已验证住户', stats.verified), ('在架物品', stats.items),
+    ('完成交易', stats.trades_done), ('待处理举报', stats.pending_reports),
+    ('待审验证', stats.pending_verify), ('可用邀请码', stats.active_invites)] %}
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <div class="fs-3 fw-bold">{{ value }}</div>
+        <div class="text-muted small">{{ label }}</div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+<div class="row g-3">
+  <div class="col-md-7">
+    <div class="card"><div class="card-header">最近发布</div>
+      <table class="table table-sm mb-0">
+        <tr><th>#</th><th>标题</th><th>类型</th><th>状态</th><th>楼栋</th></tr>
+        {% for it in recent_items %}
+        <tr>
+          <td>{{ it.id }}</td><td>{{ it.title[:20] }}</td>
+          <td>{{ it.type }}</td><td>{{ it.status }}</td><td>{{ it.building }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+  <div class="col-md-5">
+    <div class="card"><div class="card-header">最近操作日志</div>
+      <table class="table table-sm mb-0">
+        <tr><th>动作</th><th>对象</th><th>时间</th></tr>
+        {% for l in recent_logs %}
+        <tr><td>{{ l.action }}</td><td>{{ l.target_type }}#{{ l.target_id or '-' }}</td>
+            <td class="small">{{ l.created_at.strftime('%m-%d %H:%M') }}</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
