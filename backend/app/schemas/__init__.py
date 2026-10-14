@@ -139,6 +139,19 @@ class AdminReportHandleRequest(BaseModel):
     note: str = Field(default="", max_length=200)
 
 
+class AdminFaqCreateRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=50)
+    content: str = Field(min_length=1, max_length=2000)
+    pinned: bool = False
+    community_id: int | None = None  # 仅超管生效
+
+
+class AdminFaqUpdateRequest(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=50)
+    content: str | None = Field(default=None, min_length=1, max_length=2000)
+    pinned: bool | None = None
+
+
 class AdminCommunityCreateRequest(BaseModel):
     name: str = Field(min_length=1, max_length=50)
     city: str = Field(min_length=1, max_length=50)

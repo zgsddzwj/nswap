@@ -19,6 +19,7 @@ from app.models import (
     AdminLog,
     AdminUser,
     Announcement,
+    Post,
     Community,
     Invite,
     Item,
@@ -30,6 +31,8 @@ from app.models import (
 )
 from app.schemas import (
     AdminAnnouncementCreateRequest,
+    AdminFaqCreateRequest,
+    AdminFaqUpdateRequest,
     AdminAnnouncementUpdateRequest,
     AdminCommunityCreateRequest,
     AdminInviteCreateRequest,
@@ -1090,3 +1093,112 @@ def stats_trend(
             "trades": trades_daily.get(day, 0),
         })
     return ok({"series": series})
+
+
+# ---------- FAQ 管理（docs/10 Phase 1：仅管理端发布，住户只读+点赞） ----------
+
+def _faq_admin_dto(p: Post, names: dict, publishers: dict) -> dict:
+    pub = publishers.get(p.published_by)
+    return {
+        "id": p.id,
+        "title": p.title,
+        "content": p.content,
+        "pinned": p.pinned,
+        "like_count": p.like_count,
+        "community_id": p.community_id,
+        "community_name": names.get(p.community_id, str(p.community_id)),
+        "published_by_name": (pub.name or pub.username) if pub else None,
+        "created_at": iso(p.created_at),
+    }
+
+
+@router.get("/faqs")
+def admin_list_faqs(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    page, page_size = _page_args(page, page_size)
+    q = db.query(Post).filter(Post.type == "faq")
+    if admin.community_id:
+        q = q.filter(Post.community_id == admin.community_id)
+    q = q.order_by(Post.pinned.desc(), Post.id.desc())
+    rows, total = _paged(q, page, page_size)
+    names = _community_name_map(db, [r.community_id for r in rows])
+    pubs = {
+        a.id: a
+        for a in db.query(AdminUser)
+        .filter(AdminUser.id.in_([r.published_by for r in rows if r.published_by]))
+        .all()
+    }
+    return _page_payload([_faq_admin_dto(r, names, pubs) for r in rows], total, page, page_size)
+
+
+@router.post("/faq")
+def admin_create_faq(
+    payload: AdminFaqCreateRequest,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    if admin.community_id:
+        community = _own_community(db, admin)
+        if community is None:
+            raise bad_request("账号未绑定小区，请联系平台")
+    else:
+        community = db.get(Community, payload.community_id or 0)
+        if community is None:
+            raise bad_request("请选择目标小区")
+    p = Post(
+        community_id=community.id,
+        type="faq",
+        published_by=admin.id,
+        title=payload.title.strip(),
+        content=payload.content.strip(),
+        pinned=payload.pinned,
+    )
+    db.add(p)
+    db.flush()
+    _log(db, admin, "create_faq", "post", p.id, p.title)
+    db.commit()
+    return ok({"id": p.id})
+
+
+@router.put("/faq/{faq_id}")
+def admin_update_faq(
+    faq_id: int,
+    payload: AdminFaqUpdateRequest,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    p = db.get(Post, faq_id)
+    if p is None or p.type != "faq":
+        raise bad_request("常见问题不存在")
+    if admin.community_id and p.community_id != admin.community_id:
+        raise forbidden("只能编辑本小区的 FAQ")
+    if payload.title is not None:
+        p.title = payload.title.strip()
+    if payload.content is not None:
+        p.content = payload.content.strip()
+    if payload.pinned is not None:
+        p.pinned = payload.pinned
+    _log(db, admin, "update_faq", "post", p.id, p.title)
+    db.commit()
+    return ok({"ok": True})
+
+
+@router.delete("/faq/{faq_id}")
+def admin_delete_faq(
+    faq_id: int,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    p = db.get(Post, faq_id)
+    if p is None or p.type != "faq":
+        raise bad_request("常见问题不存在")
+    if admin.community_id and p.community_id != admin.community_id:
+        raise forbidden("只能删除本小区的 FAQ")
+    _log(db, admin, "delete_faq", "post", p.id, p.title)
+    db.delete(p)
+    db.commit()
+    return ok({"ok": True})

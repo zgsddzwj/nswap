@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     rate_limit_enabled: bool = True
     # 协议版本（与小程序 agreement 页文案一致，变更即触发用户重新同意）
     terms_version: str = "2026-10"
+    # 邻里墙（住户发帖）Phase 2 开关：社交类目过审后开启（docs/10 §3）
+    neighbor_wall_enabled: bool = False
 
 
 @lru_cache
