@@ -55,6 +55,17 @@ cd admin-web && npm install --registry=https://registry.npmmirror.com && npm run
 4. 前端 `config/index.ts`：`LOCAL_DEV = false`，填 `CLOUD_ENV`（环境 ID）；开发者工具导入后上传代码。
 5. 邀请码在管理后台按楼栋批量生成，交由居委会/物业/楼长发放（运营细节见 docs/06）。
 
+## 生产化配置（docs/09，上线必读）
+
+| 能力 | 配置 | 说明 |
+|---|---|---|
+| **图片存储** | `STORAGE_BACKEND=cos` + `COS_SECRET_ID/KEY/REGION/BUCKET/CDN_DOMAIN` | **生产必须**：云托管容器无状态，用 `local` 重启即丢图 |
+| 登录防爆破 | 内置（`RATE_LIMIT_ENABLED=true`） | 登录 IP 10次/5分钟、账号失败 5 次锁 15 分钟；写接口分钟级限流 |
+| 错误监控 | `SENTRY_DSN=`（留空不启用） | 接入后 5xx 自动上报；请求带 `X-Request-Id` 便于排查 |
+| 备份 | `backend/scripts/backup.sh` / `restore.sh` | 另需在云托管控制台开启 MySQL 每日自动备份（保留 ≥7 天） |
+| 协议与注销 | `TERMS_VERSION` 常量 | 变更即触发小程序重新同意；住户可在「我的」自助注销 |
+| CI | `.github/workflows/ci.yml` | push/PR 自动跑后端 pytest + 后台构建 + 小程序类型/结构校验 |
+
 ## 已知事项
 
 - **已有 MySQL 数据的部署升级**：自 v0.1.0 起新增了联系方式交换（users 3 列 + contact_exchanges）与多社区 SaaS（communities 城市/状态、admin_users.community_id、announcements 表），需执行 `docker compose exec backend alembic upgrade head`，并在管理后台为存量小区补城市（或 `UPDATE communities SET city='<城市>' WHERE city=''`）；全新部署/本地 seed 会自动建全表。

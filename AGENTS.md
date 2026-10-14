@@ -57,6 +57,19 @@ cd miniprogram && npm run typecheck                 # tsc --noEmit，改代码�
 - admin 两级分权：AdminUser.community_id（NULL=超管）。物业路由守卫 403；写操作校验目标归属。
 - 新页面加 user_summary 时若忘记传 viewer，跑 `pytest tests/test_multitenant.py` 会失败。
 
+## 生产化设施（docs/09，改相关代码前必读）
+
+- 图片存储走 `services/storage.py` 抽象（local/cos），**不要再直接写文件**；生产用 cos。
+- 限流：`services/rate_limit.py`（内存滑动窗口，单实例；多实例需换 Redis 实现）+ `core/middleware.py`
+  全局中间件；登录防爆破在 `admin/api.py`。测试默认关闭（`RATE_LIMIT_ENABLED=false`），
+  专门用例用 `enable_rate_limit` fixture 打开。
+- 可观测性：`X-Request-Id` 由中间件注入；Sentry 由 `SENTRY_DSN` 控制（空=不启用，本地零影响）。
+- 合规：`TERMS_VERSION`（core/config）变更即要求用户重新同意；注销=匿名化+下架+保留交易（deps 全局 403）。
+- N+1 守卫：列表序列化必须用 `community_names()` 批量取社区名；`tests/test_performance.py`
+  用"数据量翻倍查询数恒定"断言把守。
+- CI 三 job 全绿才算可合并：`.github/workflows/ci.yml`；小程序结构校验脚本
+  `miniprogram/scripts/validate.mjs`。
+
 ## 硬性规则
 
 1. **合规文案**：全局禁止出现「购买/下单/订单/支付/购物车」，统一用「交换/赠送/约定/意向」；

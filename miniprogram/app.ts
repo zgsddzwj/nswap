@@ -34,6 +34,21 @@ App({
       }
     });
 
+    // 全局错误上报（docs/09 P1-11）：仅上报错误摘要，不含用户内容
+    const reportError = (message: string, stack?: string) => {
+      post("/api/telemetry/errors", {
+        message: String(message || "").slice(0, 500),
+        stack: String(stack || "").slice(0, 1000),
+        page: (getCurrentPages().slice(-1)[0] as any)?.route || "",
+      }).catch(() => {
+        /* 上报失败静默 */
+      });
+    };
+    wx.onError((err) => reportError(err.message || String(err), err.stack));
+    (wx as any).onUnhandledRejection?.((res: { reason?: unknown }) =>
+      reportError(res?.reason instanceof Error ? res.reason.message : String(res?.reason ?? ""))
+    );
+
     // 版本更新提示
     const updater = wx.getUpdateManager();
     updater.onUpdateReady(() => {

@@ -20,6 +20,8 @@ interface ContactStatus {
 }
 
 const POLL_INTERVAL = 5000;
+const POLL_INTERVAL_SLOW = 15000; // 连续失败后降频（docs/09 P1-11）
+const POLL_FAIL_THRESHOLD = 3;
 
 Page({
   data: {
@@ -36,6 +38,7 @@ Page({
     contact: null as ContactStatus | null,
     showContactSheet: false,
     exchanging: false,
+    pollFails: 0,
   },
 
   convId: 0,
@@ -72,7 +75,9 @@ Page({
 
   startPolling() {
     this.stopPolling();
-    this.timer = setInterval(() => this.pullNew(), POLL_INTERVAL);
+    const interval =
+      this.data.pollFails >= POLL_FAIL_THRESHOLD ? POLL_INTERVAL_SLOW : POLL_INTERVAL;
+    this.timer = setInterval(() => this.pullNew(), interval);
   },
 
   async bootstrap() {
@@ -159,8 +164,15 @@ Page({
         this.applyMessages(r.list, false);
         refreshUnreadBadge();
       }
+      if (this.data.pollFails) {
+        // 网络恢复：复位轮询频率
+        this.setData({ pollFails: 0 });
+        this.startPolling();
+      }
     } catch {
-      /* 轮询失败静默，下个周期重试 */
+      const fails = this.data.pollFails + 1;
+      this.setData({ pollFails: fails });
+      if (fails === POLL_FAIL_THRESHOLD) this.startPolling(); // 降频
     }
   },
 

@@ -49,8 +49,17 @@ function multipartUpload(filePath: string): Promise<string> {
   });
 }
 
-/** 上传单张图片（先压缩） */
+/** 上传单张图片（先压缩；网络失败自动重试一次，docs/09 P1-11） */
 export async function uploadImage(tempFilePath: string): Promise<string> {
+  try {
+    return await _uploadImageOnce(tempFilePath);
+  } catch (e) {
+    await new Promise((r) => setTimeout(r, 600));
+    return _uploadImageOnce(tempFilePath);
+  }
+}
+
+async function _uploadImageOnce(tempFilePath: string): Promise<string> {
   const src = await compress(tempFilePath);
   if (ALLOWED_EXT.indexOf(extOf(src)) === -1) {
     throw new Error("仅支持 jpg/png/webp 图片");

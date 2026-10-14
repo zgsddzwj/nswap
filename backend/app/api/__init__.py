@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api import (
     announcements,
+    telemetry,
     auth,
     chat,
     community,
@@ -20,6 +21,7 @@ from app.api import (
 
 api_router = APIRouter(prefix="/api")
 api_router.include_router(announcements.router)
+api_router.include_router(telemetry.router)
 api_router.include_router(auth.router)
 api_router.include_router(users.router)
 api_router.include_router(community.router)
