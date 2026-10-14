@@ -106,6 +106,10 @@
         <view class="ns-cell__bd">隐私政策</view>
         <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
       </view>
+      <view class="ns-cell mine__cell" hover-class="ns-cell--hover" bindtap="onDeleteAccount">
+        <view class="ns-cell__bd" style="color: var(--ns-danger);">注销账号</view>
+        <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
+      </view>
     </view>
 
     <!-- 开发者身份切换（仅本地开发） -->

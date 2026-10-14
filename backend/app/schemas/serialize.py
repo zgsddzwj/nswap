@@ -2,6 +2,7 @@
 
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.time import iso
 from app.models import (
     Community,
@@ -94,7 +95,12 @@ def me_payload(db: Session, user: User) -> dict:
     unread = db.query(Notification).filter(
         Notification.user_id == user.id, Notification.read.is_(False)
     ).count()
-    return {"user": _me_user(user), "community": community, "unread_count": unread}
+    return {
+        "user": _me_user(user),
+        "community": community,
+        "unread_count": unread,
+        "terms_version": settings.terms_version,  # 当前协议版本（前端比对触发重新同意）
+    }
 
 
 def _me_user(u: User) -> dict:
@@ -107,6 +113,7 @@ def _me_user(u: User) -> dict:
         "role": u.role,
         "verified": u.verified,
         "status": u.status,
+        "agreed_terms_version": u.agreed_terms_version or "",
         "stats": user_stats(u),
         "created_at": iso(u.created_at),
     }

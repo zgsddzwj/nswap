@@ -1,4 +1,4 @@
-import { put, get, toastError } from "../../services/api";
+import { put, get, post, toastError } from "../../services/api";
 import { Me, getMe, refreshMe, setMe } from "../../services/auth";
 import { setDevOpenid, devOpenid } from "../../services/api";
 import { LOCAL_DEV, ADMIN_URL, DEV_IDENTITIES } from "../../config/index";
@@ -198,6 +198,43 @@ Page({
     wx.setClipboardData({
       data: this.data.adminUrl,
       success: () => wx.showToast({ title: "后台链接已复制，请在浏览器打开", icon: "none", duration: 2500 }),
+    });
+  },
+
+  /* ---------------- 账号与隐私（注销，docs/09 P0-4） ---------------- */
+
+  onDeleteAccount() {
+    wx.showModal({
+      title: "注销账号",
+      content:
+        "注销后：昵称与联系方式将被清除、在架物品下架、待处理意向取消；历史交易与评价记录将保留（展示为「已注销用户」）。此操作不可恢复。",
+      confirmText: "继续注销",
+      confirmColor: "#C9453B",
+      success: (res) => {
+        if (!res.confirm) return;
+        // 二次确认：输入「注销」
+        wx.showModal({
+          title: "二次确认",
+          content: "请输入「注销」两字确认",
+          editable: true,
+          placeholderText: "注销",
+          success: async (r2) => {
+            if (!r2.confirm) return;
+            if ((r2.content || "").trim() !== "注销") {
+              wx.showToast({ title: "输入不匹配，已取消", icon: "none" });
+              return;
+            }
+            try {
+              await post("/api/me/delete", { confirm: "注销" });
+              wx.showToast({ title: "账号已注销", icon: "success" });
+              wx.clearStorageSync();
+              setTimeout(() => wx.reLaunch({ url: "/pages/home/home" }), 900);
+            } catch (e) {
+              toastError(e);
+            }
+          },
+        });
+      },
     });
   },
 

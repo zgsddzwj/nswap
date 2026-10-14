@@ -85,6 +85,7 @@ class Announcement(Base):
     title: Mapped[str] = mapped_column(String(100))
     content: Mapped[str] = mapped_column(Text)
     published_by: Mapped[int | None] = mapped_column(ForeignKey("admin_users.id"))
+    pinned: Mapped[bool] = mapped_column(default=False)  # 置顶（docs/09 P1-10）
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 

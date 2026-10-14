@@ -25,9 +25,15 @@ export interface UserSummary {
 }
 
 export interface Me {
-  user: UserSummary & { unit?: string; status: string; community_id?: number | null };
+  user: UserSummary & {
+    unit?: string;
+    status: string;
+    community_id?: number | null;
+    agreed_terms_version?: string;
+  };
   community: { id: number; name: string; verified_count: number; item_count: number } | null;
   unread_count: number;
+  terms_version?: string;
 }
 
 let me: Me | null = null;

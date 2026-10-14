@@ -62,5 +62,8 @@ export const ADMIN_URL = LOCAL_DEV
   ? `${CONFIG.DEV_BASE_URL}/admin`
   : `${CONFIG.CLOUD_PUBLIC_BASE_URL.replace(/\/$/, "")}/admin`;
 
+/** 协议版本（与后端 TERMS_VERSION 一致；变更后小程序会要求用户重新同意） */
+export const TERMS_VERSION = "2026-10";
+
 /** 本地开发可切换的模拟身份（与 scripts/seed.py 的演示用户一致） */
 export const DEV_IDENTITIES = ["dev_alice", "dev_bob", "dev_carol"];

@@ -40,6 +40,8 @@ def get_current_user(
     if not openid:
         raise unauthorized()
     user = db.query(User).filter(User.openid == openid).first()
+    if user is not None and (user.status == "deleted" or user.deleted_at is not None):
+        raise forbidden("账号已注销")
     if user is None:
         # 静默登录：首次访问自动建档为游客（未验证）
         user = User(openid=openid, nickname=f"邻居{secrets.token_hex(2)}")
@@ -61,6 +63,8 @@ def get_verified_user(user: User = Depends(get_current_user)) -> User:
 def get_active_user(user: User = Depends(get_current_user)) -> User:
     if user.status == "banned":
         raise forbidden("账号已被封禁，如有疑问请联系管理员")
+    if user.status == "deleted" or user.deleted_at is not None:
+        raise forbidden("账号已注销")
     return user
 
 

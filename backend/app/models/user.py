@@ -27,6 +27,11 @@ class User(Base):
     contact_phone: Mapped[str] = mapped_column(String(20), default="")
     contact_enabled: Mapped[bool] = mapped_column(default=False)
 
+    # 合规（docs/09 P0-4）：协议同意记录 + 注销软删除
+    agreed_terms_at: Mapped[datetime | None] = mapped_column(DateTime)
+    agreed_terms_version: Mapped[str] = mapped_column(String(10), default="")
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime)
+
     # 信用统计缓存（credit.py 维护，只展示客观数据）
     sell_done: Mapped[int] = mapped_column(default=0)
     give_done: Mapped[int] = mapped_column(default=0)
