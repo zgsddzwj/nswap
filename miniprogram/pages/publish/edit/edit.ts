@@ -1,10 +1,8 @@
 import { get, post, put, toastError } from "../../../services/api";
 import {
   ITEM_TYPE_MAP,
-  CATEGORIES,
   CONDITION_MAP,
   CONDITIONS,
-  CATEGORY_MAP,
   ItemType,
 } from "../../../utils/constants";
 import { yuanToCents, splitPrice } from "../../../utils/format";
@@ -37,16 +35,11 @@ Page({
     images: [] as string[],
     title: "",
     description: "",
-    category: "",
-    categoryLabel: "",
     condition: "",
     priceYuan: "",
     bidYuan: "",
     negotiable: false,
     wantDesc: "",
-    /* 分类弹层 */
-    showCategory: false,
-    categories: CATEGORIES,
     conditions: CONDITIONS,
     conditionLabels: CONDITION_MAP,
     /* 上传/提交状态 */
@@ -81,8 +74,6 @@ Page({
         images: d.images || [],
         title: d.title,
         description: d.description || "",
-        category: d.category,
-        categoryLabel: CATEGORY_MAP[d.category] ? CATEGORY_MAP[d.category].label : d.category,
         condition: d.condition || "",
         priceYuan: price.dec ? `${price.int}${price.dec}` : price.int,
         bidYuan: d.bid_cents ? String(d.bid_cents / 100) : "",
@@ -155,23 +146,6 @@ Page({
     this.setData({ condition: e.currentTarget.dataset.value as string });
   },
 
-  openCategory() {
-    this.setData({ showCategory: true });
-  },
-
-  closeCategory() {
-    this.setData({ showCategory: false });
-  },
-
-  onPickCategory(e: WechatMiniprogram.TouchEvent) {
-    const value = e.currentTarget.dataset.value as string;
-    this.setData({
-      category: value,
-      categoryLabel: CATEGORY_MAP[value] ? CATEGORY_MAP[value].label : "",
-      showCategory: false,
-    });
-  },
-
   /* ---------------- 提交 ---------------- */
 
   validate(): string | null {
@@ -180,7 +154,6 @@ Page({
     if (needImage && !d.images.length) return "至少上传 1 张图片";
     if (!d.title.trim()) return "起个标题吧";
     if (d.title.trim().length > 30) return "标题不超过 30 字";
-    if (!d.category) return "选一个分类";
     if ((d.type === "sell" || d.type === "swap") && !d.condition) return "选一下成色";
     if (d.type === "sell") {
       if (yuanToCents(d.priceYuan) === null) return "填一个正确的参考价";
@@ -206,7 +179,7 @@ Page({
       type: d.type,
       title: d.title.trim(),
       description: d.description.trim(),
-      category: d.category,
+      // 分类免选（docs/11）：不传 category，后端按标题自动识别
       condition: d.type === "sell" || d.type === "swap" ? d.condition : null,
       price_cents: d.type === "sell" ? yuanToCents(d.priceYuan) : null,
       negotiable: d.type === "sell" ? d.negotiable : false,

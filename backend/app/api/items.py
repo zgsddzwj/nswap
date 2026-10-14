@@ -12,6 +12,7 @@ from app.core.deps import (
     get_verified_user,
 )
 from app.core.errors import bad_request, conflict, forbidden, not_found, too_many
+from app.services.categorize import guess_category
 from app.core.time import utcnow
 from app.models import Item, ItemWant, Transaction, User
 from app.schemas import ItemPayload
@@ -44,8 +45,7 @@ def _decode_cursor(cursor: str) -> tuple[datetime, int]:
 def _validate_payload(p: ItemPayload) -> None:
     if p.type not in ITEM_TYPES:
         raise bad_request("物品类型不合法")
-    if p.category not in CATEGORIES:
-        raise bad_request("分类不合法")
+    # 分类免选（docs/11）：None/非法值在落库前自动识别，不再强制校验
     if p.condition is not None and p.condition not in CONDITIONS:
         raise bad_request("成色不合法")
     if p.type == "sell":
@@ -156,13 +156,17 @@ def create_item(
     if not user.community_id:
         raise forbidden("请先完成小区验证")
     sec_status = check_text(db, f"{payload.title}\n{payload.description}", user, "text", None)
+    # 分类免选（docs/11）：未传/非法 → 按标题与描述自动识别
+    category = payload.category if payload.category in CATEGORIES else guess_category(
+        payload.title, payload.description
+    )
     item = Item(
         community_id=user.community_id,
         user_id=user.id,
         type=payload.type,
         title=payload.title.strip(),
         description=payload.description.strip(),
-        category=payload.category,
+        category=category,
         condition=payload.condition,
         price_cents=payload.price_cents if payload.type == "sell" else None,
         negotiable=payload.negotiable and payload.type == "sell",
@@ -215,7 +219,9 @@ def update_item(
     item.type = payload.type
     item.title = payload.title.strip()
     item.description = payload.description.strip()
-    item.category = payload.category
+    item.category = payload.category if payload.category in CATEGORIES else guess_category(
+        payload.title, payload.description
+    )
     item.condition = payload.condition
     item.price_cents = payload.price_cents if payload.type == "sell" else None
     item.negotiable = payload.negotiable and payload.type == "sell"

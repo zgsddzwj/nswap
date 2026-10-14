@@ -3,7 +3,7 @@
   <view class="ns-form-section">
     <view class="ns-form-label {{type !== 'want' ? 'ns-form-label--required' : ''}}">
       图片
-      <text wx:if="{{type === 'want'}}" class="ns-hint" style="margin-left: 12rpx;">求购帖可不配图</text>
+      <text class="ns-hint" style="margin-left: 12rpx;">实况照片将取静帧展示；图片自动清除位置信息并加平台水印</text>
     </view>
     <view class="edit__images">
       <view wx:for="{{images}}" wx:key="*this" class="edit__thumb">
@@ -35,11 +35,6 @@
         bindinput="onTitle"
       />
       <text class="ns-hint">{{title.length}}/30</text>
-    </view>
-    <view class="edit__divider"></view>
-    <view class="edit__field" bindtap="openCategory">
-      <text class="edit__field-name {{category ? '' : 'edit__field-name--ph'}}">{{categoryLabel || '选择分类'}}</text>
-      <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
     </view>
   </view>
 
@@ -119,22 +114,4 @@
     </view>
   </view>
 
-  <!-- 分类弹层 -->
-  <t-popup visible="{{showCategory}}" placement="bottom" bind:visible-change="closeCategory">
-    <view class="edit__cat">
-      <view class="ns-h2 edit__cat-title">选择分类</view>
-      <view class="edit__cat-grid">
-        <view
-          wx:for="{{categories}}"
-          wx:key="value"
-          class="edit__cat-item {{category === item.value ? 'edit__cat-item--on' : ''}}"
-          data-value="{{item.value}}"
-          bindtap="onPickCategory"
-        >
-          <view class="edit__cat-dot" style="background: {{item.color}};"></view>
-          {{item.label}}
-        </view>
-      </view>
-    </view>
-  </t-popup>
 </view>

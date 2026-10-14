@@ -1,6 +1,9 @@
 """生产化加固：限流/登录防爆破/存储抽象（docs/09 P0-1/P0-2）。"""
 
+import io
+
 import pytest
+from PIL import Image
 
 from app.core.config import settings
 from app.services import rate_limit
@@ -74,7 +77,9 @@ def test_upload_rate_limit(client, db, community, users, enable_rate_limit, monk
     from app.api import uploads as uploads_api
 
     monkeypatch.setattr(uploads_api, "UPLOAD_RATE_LIMIT", 2)
-    png = b"\x89PNG\r\n\x1a\n" + b"0" * 64
+    buf = io.BytesIO()
+    Image.new("RGB", (40, 40), (14, 122, 90)).save(buf, format="PNG")
+    png = buf.getvalue()
     for i in range(2):
         r = client.post(
             "/api/uploads",
@@ -128,22 +133,35 @@ def test_storage_cos_requires_config(monkeypatch):
 
 
 def test_upload_uses_storage_abstraction(client, db, community, users, monkeypatch):
-    """上传入口走存储抽象（FakeBackend 注入验证）。"""
+    """上传入口走存储抽象（FakeBackend 注入验证），且处理管线已生效。"""
+    import io as _io
+
+    from PIL import Image
+
     from app.api import uploads as uploads_api
+
+    seen: dict = {}
 
     class FakeStorage:
         def save(self, data: bytes, ext: str) -> str:
-            assert data and ext == ".png"
+            seen["data"], seen["ext"] = data, ext
             return "https://fake-cdn.test/uploads/x.png"
 
     monkeypatch.setattr(uploads_api, "get_storage", lambda: FakeStorage())
+    buf = _io.BytesIO()
+    Image.new("RGB", (60, 40), (20, 30, 40)).save(buf, format="PNG")
     r = client.post(
         "/api/uploads",
-        files={"file": ("a.png", b"\x89PNG" + b"0" * 32, "image/png")},
+        files={"file": ("a.png", buf.getvalue(), "image/png")},
         headers=hdr("dev_alice"),
     )
     assert r.status_code == 200
     assert r.json()["data"]["url"] == "https://fake-cdn.test/uploads/x.png"
+    # 管线验证：EXIF 清除后以 JPEG/PNG 落盘，尺寸保持
+    assert seen["ext"] in (".png", ".jpg")
+    img = Image.open(_io.BytesIO(seen["data"]))
+    assert img.size == (60, 40)
+    assert not (img.info.get("exif"))
 
 
 def test_request_id_header(client, db, community):

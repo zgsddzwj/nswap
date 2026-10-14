@@ -10,12 +10,13 @@ from app.core.deps import get_active_user, get_db
 from app.core.errors import bad_request
 from app.models import User
 from app.schemas.serialize import ok
+from app.services.imaging import process_image
 from app.services.rate_limit import check_rate
 from app.services.storage import get_storage
 
 router = APIRouter(tags=["uploads"])
 
-ALLOWED_EXT = {".jpg", ".jpeg", ".png", ".webp"}
+ALLOWED_EXT = {".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"}
 MAX_SIZE = 5 * 1024 * 1024  # 5MB
 
 UPLOAD_RATE_LIMIT = 20  # 每用户每分钟上传次数（docs/09 P0-2）
@@ -42,12 +43,16 @@ async def upload_image(
     _check_upload_rate(user)
     ext = os.path.splitext(file.filename or "")[1].lower()
     if ext not in ALLOWED_EXT:
-        raise bad_request("仅支持 jpg/png/webp 图片")
+        raise bad_request("仅支持 jpg/png/webp/heic 图片")
     data = await file.read()
     if len(data) > MAX_SIZE:
         raise bad_request("图片不能超过 5MB")
     if not data:
         raise bad_request("图片内容为空")
+    try:
+        data, ext = process_image(data, ext)  # EXIF 清除 + 水印 + HEIC 转 JPEG（docs/11）
+    except Exception:
+        raise bad_request("图片文件无法识别，请重新选择")
     return ok({"url": save_upload(data, ext)})
 
 
@@ -71,7 +76,7 @@ def upload_image_base64(
     _check_upload_rate(user)
     ext = os.path.splitext(payload.filename)[1].lower()
     if ext not in ALLOWED_EXT:
-        raise bad_request("仅支持 jpg/png/webp 图片")
+        raise bad_request("仅支持 jpg/png/webp/heic 图片")
     try:
         data = base64.b64decode(payload.content, validate=True)
     except Exception:
@@ -80,4 +85,8 @@ def upload_image_base64(
         raise bad_request("图片内容为空")
     if len(data) > MAX_SIZE:
         raise bad_request("图片不能超过 5MB")
+    try:
+        data, ext = process_image(data, ext)
+    except Exception:
+        raise bad_request("图片文件无法识别，请重新选择")
     return ok({"url": save_upload(data, ext)})

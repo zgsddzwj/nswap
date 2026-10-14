@@ -36,7 +36,7 @@ class ItemPayload(BaseModel):
     type: str = "sell"
     title: str = Field(min_length=1, max_length=60)
     description: str = Field(default="", max_length=1000)
-    category: str = "other"
+    category: str | None = None  # None/非法值 = 按标题自动识别（docs/11）
     condition: str | None = None
     price_cents: int | None = None
     negotiable: bool = False
