@@ -30,6 +30,7 @@ from app.models import (
 )
 from app.schemas import (
     AdminAnnouncementCreateRequest,
+    AdminAnnouncementUpdateRequest,
     AdminCommunityCreateRequest,
     AdminInviteCreateRequest,
     AdminLoginRequest,
@@ -298,6 +299,7 @@ def _announcement_dto(a: Announcement, names: dict, publishers: dict) -> dict:
         "community_id": a.community_id,
         "community_name": names.get(a.community_id, str(a.community_id)),
         "published_by_name": (pub.name or pub.username) if pub else None,
+        "pinned": a.pinned,
         "created_at": iso(a.created_at),
     }
 
@@ -313,7 +315,7 @@ def list_announcements(
     q = db.query(Announcement)
     if admin.community_id:
         q = q.filter(Announcement.community_id == admin.community_id)
-    q = q.order_by(Announcement.id.desc())
+    q = q.order_by(Announcement.pinned.desc(), Announcement.id.desc())
     rows, total = _paged(q, page, page_size)
     names = _community_name_map(db, [r.community_id for r in rows])
     pubs = {
@@ -348,6 +350,29 @@ def create_announcement(
     _log(db, admin, "create_announcement", "community", community.id, a.title)
     db.commit()
     return ok({"id": a.id})
+
+
+@router.put("/announcements/{announcement_id}")
+def update_announcement(
+    announcement_id: int,
+    payload: AdminAnnouncementUpdateRequest,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    a = db.get(Announcement, announcement_id)
+    if a is None:
+        raise bad_request("公告不存在")
+    if admin.community_id and a.community_id != admin.community_id:
+        raise forbidden("只能编辑本小区的公告")
+    if payload.title is not None:
+        a.title = payload.title.strip()
+    if payload.content is not None:
+        a.content = payload.content.strip()
+    if payload.pinned is not None:
+        a.pinned = payload.pinned
+    _log(db, admin, "update_announcement", "announcement", a.id, a.title)
+    db.commit()
+    return ok({"ok": True})
 
 
 @router.delete("/announcements/{announcement_id}")
@@ -806,3 +831,262 @@ def change_password(
     _log(db, admin, "change_password")
     db.commit()
     return ok({"ok": True})
+
+
+# ---------- 操作日志（docs/09 P1-6） ----------
+
+@router.get("/logs")
+def list_logs(
+    action: str | None = None,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """物业仅看自己的操作；超管看全部（含操作者）。"""
+    page, page_size = _page_args(page, page_size)
+    q = db.query(AdminLog)
+    if admin.community_id:
+        q = q.filter(AdminLog.admin_id == admin.id)
+    if action:
+        q = q.filter(AdminLog.action == action)
+    q = q.order_by(AdminLog.id.desc())
+    rows, total = _paged(q, page, page_size)
+    admins = {a.id: a for a in db.query(AdminUser).filter(AdminUser.id.in_([r.admin_id for r in rows])).all()}
+    return _page_payload(
+        [
+            {
+                "id": r.id,
+                "admin_id": r.admin_id,
+                "admin_name": (admins[r.admin_id].name or admins[r.admin_id].username) if r.admin_id in admins else f"#{r.admin_id}",
+                "action": r.action,
+                "target_type": r.target_type,
+                "target_id": r.target_id,
+                "detail": r.detail,
+                "created_at": iso(r.created_at),
+            }
+            for r in rows
+        ],
+        total,
+        page,
+        page_size,
+    )
+
+
+# ---------- 待审内容处置闭环（docs/09 P1-7） ----------
+
+def _pending_items(db: Session, admin: AdminUser, page: int, page_size: int):
+    q = db.query(Item).filter(Item.sec_status == "pending")
+    if admin.community_id:
+        q = q.filter(Item.community_id == admin.community_id)
+    return _paged(q.order_by(Item.id.desc()), page, page_size)
+
+
+def _pending_messages(db: Session, admin: AdminUser, page: int, page_size: int):
+    q = db.query(ItemMessage).filter(ItemMessage.sec_status == "pending")
+    if admin.community_id:
+        q = q.join(Item, ItemMessage.item_id == Item.id).filter(Item.community_id == admin.community_id)
+    return _paged(q.order_by(ItemMessage.id.desc()), page, page_size)
+
+
+@router.get("/pending-content")
+def list_pending_content(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """文本审核异常降级（pending）的物品与留言：仅作者与管理员可见，需人工放行/拒绝。"""
+    page, page_size = _page_args(page, page_size)
+    items, items_total = _pending_items(db, admin, page, page_size)
+    messages, messages_total = _pending_messages(db, admin, page, page_size)
+    names = _community_name_map(db, [i.community_id for i in items])
+    authors = {u.id: u for u in db.query(User).filter(
+        User.id.in_([i.user_id for i in items] + [m.user_id for m in messages])
+    ).all()}
+    item_titles = {i.id: i.title for i in db.query(Item).filter(
+        Item.id.in_([m.item_id for m in messages])
+    ).all()}
+    return ok(
+        {
+            "items": [
+                {
+                    "id": i.id,
+                    "title": i.title,
+                    "author_nickname": authors[i.user_id].nickname if i.user_id in authors else None,
+                    "community_name": names.get(i.community_id, str(i.community_id)),
+                    "created_at": iso(i.created_at),
+                }
+                for i in items
+            ],
+            "items_total": items_total,
+            "messages": [
+                {
+                    "id": m.id,
+                    "content": m.content,
+                    "item_id": m.item_id,
+                    "item_title": item_titles.get(m.item_id),
+                    "author_nickname": authors[m.user_id].nickname if m.user_id in authors else None,
+                    "created_at": iso(m.created_at),
+                }
+                for m in messages
+            ],
+            "messages_total": messages_total,
+        }
+    )
+
+
+@router.post("/pending-content/{kind}/{content_id}/approve")
+def approve_pending(
+    kind: str, content_id: int,
+    admin: AdminUser = Depends(get_current_admin), db: Session = Depends(get_db),
+):
+    obj, owner_id = _get_pending(db, admin, kind, content_id)
+    obj.sec_status = "pass"
+    _log(db, admin, f"approve_{kind}", kind, content_id)
+    db.commit()
+    return ok({"ok": True})
+
+
+@router.post("/pending-content/{kind}/{content_id}/reject")
+def reject_pending(
+    kind: str, content_id: int,
+    admin: AdminUser = Depends(get_current_admin), db: Session = Depends(get_db),
+):
+    from app.services.notify import push_notification
+
+    obj, owner_id = _get_pending(db, admin, kind, content_id)
+    obj.sec_status = "fail"  # 标记审核失败：移出待审队列且不再展示
+    if kind == "item":
+        obj.status = "archived"
+        title = obj.title
+    else:
+        obj.status = "hidden"
+        title = obj.content[:30]
+    push_notification(
+        db, owner_id, "content_rejected", "内容未通过审核",
+        f"你的内容「{title}」未通过审核，已{'下架' if kind == 'item' else '隐藏'}",
+        {},
+    )
+    _log(db, admin, f"reject_{kind}", kind, content_id, title)
+    db.commit()
+    return ok({"ok": True})
+
+
+def _get_pending(db: Session, admin: AdminUser, kind: str, content_id: int):
+    if kind == "item":
+        obj = db.get(Item, content_id)
+        community_id = obj.community_id if obj else None
+    elif kind == "message":
+        obj = db.get(ItemMessage, content_id)
+        item = db.get(Item, obj.item_id) if obj else None
+        community_id = item.community_id if item else None
+    else:
+        raise bad_request("kind 不合法")
+    if obj is None:
+        raise bad_request("内容不存在")
+    if admin.community_id and community_id != admin.community_id:
+        raise forbidden("只能处置本小区的内容")
+    if obj.sec_status != "pending":
+        raise bad_request("该内容不在待审状态")
+    return obj, obj.user_id
+
+
+# ---------- 导出（docs/09 P1-10） ----------
+
+def _csv_response(rows: list[list], headers: list[str], filename: str):
+    from fastapi.responses import Response
+
+    lines = [",".join(headers)]
+    for row in rows:
+        cells = []
+        for v in row:
+            text = "" if v is None else str(v)
+            if any(c in text for c in [",", '"', "\n"]):
+                text = '"' + text.replace('"', '""') + '"'
+            cells.append(text)
+        lines.append(",".join(cells))
+    body = "\ufeff" + "\n".join(lines)  # BOM：Excel 打开中文不乱码
+    return Response(
+        content=body.encode("utf-8"),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/invites/export")
+def export_invites(
+    status: str | None = None,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    q = db.query(Invite)
+    if admin.community_id:
+        q = q.filter(Invite.community_id == admin.community_id)
+    if status:
+        q = q.filter(Invite.status == status)
+    rows = q.order_by(Invite.id.desc()).limit(5000).all()
+    names = _community_name_map(db, [r.community_id for r in rows])
+    return _csv_response(
+        [[r.code, r.building, r.batch_note, r.status, names.get(r.community_id, ""),
+          iso(r.expires_at) if r.expires_at else "", iso(r.created_at)] for r in rows],
+        ["邀请码", "楼栋", "批次备注", "状态", "小区", "过期时间", "创建时间"],
+        "invites.csv",
+    )
+
+
+@router.get("/users/export")
+def export_users(
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    q = db.query(User)
+    if admin.community_id:
+        q = q.filter(User.community_id == admin.community_id)
+    rows = q.order_by(User.id.desc()).limit(5000).all()
+    names = _community_name_map(db, [r.community_id for r in rows])
+    return _csv_response(
+        [[r.id, r.nickname, r.building, r.unit, names.get(r.community_id, "未加入"),
+          r.role, "是" if r.verified else "否", r.status, r.trades_done, r.violations,
+          iso(r.created_at)] for r in rows],
+        ["ID", "昵称", "楼栋", "单元", "小区", "角色", "已验证", "状态", "完成交易", "违约", "注册时间"],
+        "users.csv",
+    )
+
+
+# ---------- 看板趋势（docs/09 P1-10） ----------
+
+@router.get("/stats/trend")
+def stats_trend(
+    days: int = Query(default=14, ge=1, le=90),
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    from sqlalchemy import func
+
+    cid = admin.community_id
+    start = utcnow() - timedelta(days=days - 1)
+    start_day = start.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    def _daily(model, ts_col, extra=None):
+        q = db.query(func.date(ts_col), func.count()).filter(ts_col >= start_day)
+        if cid and hasattr(model, "community_id"):
+            q = q.filter(model.community_id == cid)
+        if extra is not None:
+            q = q.filter(extra)
+        return {str(d): c for d, c in q.group_by(func.date(ts_col)).all()}
+
+    users_daily = _daily(User, User.created_at)
+    items_daily = _daily(Item, Item.created_at)
+    trades_daily = _daily(Item, Item.created_at, Item.status == "completed")
+
+    series = []
+    for i in range(days):
+        day = (start_day + timedelta(days=i)).date().isoformat()
+        series.append({
+            "date": day,
+            "users": users_daily.get(day, 0),
+            "items": items_daily.get(day, 0),
+            "trades": trades_daily.get(day, 0),
+        })
+    return ok({"series": series})

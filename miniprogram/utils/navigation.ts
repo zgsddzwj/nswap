@@ -14,6 +14,8 @@ export function notificationTarget(n: NotificationLike): string | null {
     case "item_message":
     case "item_sunk":
       return p.item_id ? `/pages/detail/detail?id=${p.item_id}` : null;
+    case "content_rejected":
+      return "/pages/my-items/my-items"; // 被拒内容已下架，去我的发布查看
     case "want_accepted":
     case "trade_arranged":
     case "trade_confirmed":

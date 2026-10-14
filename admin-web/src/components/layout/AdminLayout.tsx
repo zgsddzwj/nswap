@@ -3,11 +3,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   BarChart3,
   Building2,
+  ClipboardList,
   Flag,
   KeyRound,
   LogOut,
   Megaphone,
   Package,
+  ShieldAlert,
   ShieldCheck,
   Users,
 } from "lucide-react";
@@ -21,7 +23,9 @@ const NAV = [
   { to: "/announcements", label: "公告管理", icon: Megaphone },
   { to: "/items", label: "内容巡查", icon: Package },
   { to: "/reports", label: "举报处置", icon: Flag },
+  { to: "/pending-content", label: "内容审核", icon: ShieldAlert },
   { to: "/users", label: "用户管理", icon: Users },
+  { to: "/logs", label: "操作日志", icon: ClipboardList },
 ];
 
 const SUPER_NAV = [

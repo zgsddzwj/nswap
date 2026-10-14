@@ -21,10 +21,21 @@ interface Stats {
   }[];
 }
 
+interface TrendPoint {
+  date: string;
+  users: number;
+  items: number;
+  trades: number;
+}
+
 export function Dashboard() {
   const { data: stats } = useQuery({
     queryKey: ["stats"],
     queryFn: () => api<Stats>("GET", "/api/admin/stats"),
+  });
+  const { data: trend } = useQuery({
+    queryKey: ["trend"],
+    queryFn: () => api<{ series: TrendPoint[] }>("GET", "/api/admin/stats/trend?days=14"),
   });
   if (!stats) return <div className="text-sm text-slate-400">加载中…</div>;
 
@@ -49,6 +60,42 @@ export function Dashboard() {
           </Card>
         ))}
       </div>
+
+      {trend && (
+        <Card className="mb-6">
+          <div className="border-b border-slate-100 px-5 py-3.5 text-sm font-semibold text-slate-800">
+            近 14 天趋势
+          </div>
+          <div className="flex items-end gap-3 px-5 py-4">
+            {(["users", "items", "trades"] as const).map((key) => {
+              const max = Math.max(1, ...trend.series.map((p) => p[key]));
+              const label = key === "users" ? "新增用户" : key === "items" ? "新增物品" : "完成交易";
+              const color = key === "users" ? "bg-brand" : key === "items" ? "bg-sky-500" : "bg-amber-500";
+              return (
+                <div key={key} className="flex-1">
+                  <div className="mb-1.5 text-xs text-slate-500">
+                    {label}（合计 {trend.series.reduce((s, p) => s + p[key], 0)}）
+                  </div>
+                  <div className="flex h-24 items-end gap-0.5">
+                    {trend.series.map((p) => (
+                      <div
+                        key={p.date}
+                        title={`${p.date}: ${p[key]}`}
+                        className={`${color} min-h-[2px] flex-1 rounded-t`}
+                        style={{ height: `${Math.round((p[key] / max) * 100)}%` }}
+                      />
+                    ))}
+                  </div>
+                  <div className="mt-1 flex justify-between text-[10px] text-slate-400">
+                    <span>{trend.series[0]?.date.slice(5)}</span>
+                    <span>{trend.series[trend.series.length - 1]?.date.slice(5)}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
 
       {stats.communities_overview && (
         <Card>

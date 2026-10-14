@@ -101,7 +101,14 @@ export function Users() {
 
   return (
     <div>
-      <PageHeader title="用户管理" />
+      <PageHeader title="用户管理">
+        <a
+          href="/api/admin/users/export"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        >
+          导出 CSV
+        </a>
+      </PageHeader>
 
       {verify && verify.list.length > 0 && (
         <Card className="mb-5">

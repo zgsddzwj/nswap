@@ -127,6 +127,12 @@ class AdminAnnouncementCreateRequest(BaseModel):
     community_id: int | None = None  # 仅超管生效
 
 
+class AdminAnnouncementUpdateRequest(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=100)
+    content: str | None = Field(default=None, min_length=1, max_length=5000)
+    pinned: bool | None = None
+
+
 class AdminReportHandleRequest(BaseModel):
     decision: str  # resolve | dismiss
     apply_action: bool = False

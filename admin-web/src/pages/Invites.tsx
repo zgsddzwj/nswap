@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Copy, KeyRound } from "lucide-react";
+import { Copy, Download, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { api, type AdminInfo, type Page } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
@@ -95,6 +95,12 @@ export function Invites() {
         <span className="text-sm text-slate-400">
           {isSuper ? "全部小区" : `小区：${admin?.community?.name ?? "-"}`}
         </span>
+        <a
+          href={`/api/admin/invites/export${status ? `?status=${status}` : ""}`}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        >
+          <Download size={14} /> 导出 CSV
+        </a>
       </PageHeader>
 
       <Card className="mb-5 p-5">

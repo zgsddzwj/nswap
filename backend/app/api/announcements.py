@@ -23,7 +23,7 @@ def list_announcements(
     q = db.query(Announcement).filter(Announcement.community_id == user.community_id)
     if cursor:
         q = q.filter(Announcement.id < cursor)
-    rows = q.order_by(Announcement.id.desc()).limit(limit).all()
+    rows = q.order_by(Announcement.pinned.desc(), Announcement.id.desc()).limit(limit).all()
     next_cursor = rows[-1].id if len(rows) == limit else None
     return ok(
         {

@@ -15,6 +15,7 @@ interface AnnouncementRow {
   community_id: number;
   community_name: string;
   published_by_name: string | null;
+  pinned: boolean;
   created_at: string;
 }
 
@@ -30,6 +31,8 @@ export function Announcements() {
   const [page, setPage] = useState(1);
   const [publishOpen, setPublishOpen] = useState(false);
   const [deleting, setDeleting] = useState<AnnouncementRow | null>(null);
+  const [editing, setEditing] = useState<AnnouncementRow | null>(null);
+  const [editForm, setEditForm] = useState({ title: "", content: "", pinned: false });
   const { data: admin } = useQuery({
     queryKey: ["me"],
     queryFn: () => api<AdminInfo>("GET", "/api/admin/auth/me"),
@@ -62,6 +65,30 @@ export function Announcements() {
       qc.invalidateQueries({ queryKey: ["announcements"] });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "发布失败"),
+  });
+
+  const update = useMutation({
+    mutationFn: (id: number) =>
+      api("PUT", `/api/admin/announcements/${id}`, {
+        title: editForm.title,
+        content: editForm.content,
+        pinned: editForm.pinned,
+      }),
+    onSuccess: () => {
+      toast.success("已保存");
+      setEditing(null);
+      qc.invalidateQueries({ queryKey: ["announcements"] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "保存失败"),
+  });
+
+  const togglePin = useMutation({
+    mutationFn: (a: AnnouncementRow) =>
+      api("PUT", `/api/admin/announcements/${a.id}`, { pinned: !a.pinned }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["announcements"] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "操作失败"),
   });
 
   const remove = useMutation({
@@ -103,20 +130,44 @@ export function Announcements() {
                 <tr key={a.id} className="border-b border-slate-50 last:border-0">
                   <td className="px-5 py-2.5 text-slate-400">{a.id}</td>
                   {isSuper && <td className="px-5 py-2.5 text-slate-500">{a.community_name}</td>}
-                  <td className="px-5 py-2.5 font-medium text-slate-700">{a.title}</td>
+                  <td className="px-5 py-2.5 font-medium text-slate-700">
+                    {a.pinned && (
+                      <span className="mr-1.5 rounded bg-amber-50 px-1.5 py-0.5 text-xs text-amber-700">置顶</span>
+                    )}
+                    {a.title}
+                  </td>
                   <td className="max-w-xs px-5 py-2.5 text-slate-500">
                     <span className="line-clamp-1">{a.content}</span>
                   </td>
                   <td className="px-5 py-2.5 text-slate-500">{a.published_by_name || "-"}</td>
                   <td className="px-5 py-2.5 text-slate-500">{fmtTime(a.created_at)}</td>
                   <td className="px-5 py-2.5">
-                    <Button
-                      variant="outline"
-                      className="px-2.5 py-1 text-xs"
-                      onClick={() => setDeleting(a)}
-                    >
-                      删除
-                    </Button>
+                    <div className="flex gap-1.5">
+                      <Button
+                        variant="outline"
+                        className="px-2 py-1 text-xs"
+                        onClick={() => {
+                          setEditing(a);
+                          setEditForm({ title: a.title, content: a.content, pinned: a.pinned });
+                        }}
+                      >
+                        编辑
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        className="px-2 py-1 text-xs"
+                        onClick={() => togglePin.mutate(a)}
+                      >
+                        {a.pinned ? "取消置顶" : "置顶"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="px-2 py-1 text-xs"
+                        onClick={() => setDeleting(a)}
+                      >
+                        删除
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -188,6 +239,45 @@ export function Announcements() {
           </Field>
           <Button className="w-full" disabled={publish.isPending}>
             {publish.isPending ? "发布中…" : "发布公告"}
+          </Button>
+        </form>
+      </Modal>
+
+      <Modal open={!!editing} onClose={() => setEditing(null)} title="编辑公告">
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (editing) update.mutate(editing.id);
+          }}
+        >
+          <Field label="标题（≤100 字）">
+            <Input
+              required
+              maxLength={100}
+              value={editForm.title}
+              onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+            />
+          </Field>
+          <Field label="正文">
+            <Textarea
+              required
+              rows={4}
+              value={editForm.content}
+              onChange={(e) => setEditForm({ ...editForm, content: e.target.value })}
+            />
+          </Field>
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              checked={editForm.pinned}
+              onChange={(e) => setEditForm({ ...editForm, pinned: e.target.checked })}
+              className="h-4 w-4 rounded border-slate-300"
+            />
+            在首页置顶展示
+          </label>
+          <Button className="w-full" disabled={update.isPending}>
+            {update.isPending ? "保存中…" : "保存"}
           </Button>
         </form>
       </Modal>

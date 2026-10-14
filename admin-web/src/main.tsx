@@ -14,6 +14,8 @@ import { Reports } from "@/pages/Reports";
 import { Users } from "@/pages/Users";
 import { Communities } from "@/pages/Communities";
 import { SecChecks } from "@/pages/SecChecks";
+import { Logs } from "@/pages/Logs";
+import { PendingContent } from "@/pages/PendingContent";
 import { Password } from "@/pages/Password";
 
 const qc = new QueryClient({
@@ -35,6 +37,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Route path="users" element={<Users />} />
             <Route path="communities" element={<Communities />} />
             <Route path="sec-checks" element={<SecChecks />} />
+            <Route path="pending-content" element={<PendingContent />} />
+            <Route path="logs" element={<Logs />} />
             <Route path="password" element={<Password />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
