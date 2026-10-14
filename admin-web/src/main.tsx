@@ -16,6 +16,7 @@ import { Communities } from "@/pages/Communities";
 import { SecChecks } from "@/pages/SecChecks";
 import { Logs } from "@/pages/Logs";
 import { PendingContent } from "@/pages/PendingContent";
+import { Faqs } from "@/pages/Faqs";
 import { Password } from "@/pages/Password";
 
 const qc = new QueryClient({
@@ -38,6 +39,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Route path="communities" element={<Communities />} />
             <Route path="sec-checks" element={<SecChecks />} />
             <Route path="pending-content" element={<PendingContent />} />
+            <Route path="faqs" element={<Faqs />} />
             <Route path="logs" element={<Logs />} />
             <Route path="password" element={<Password />} />
           </Route>

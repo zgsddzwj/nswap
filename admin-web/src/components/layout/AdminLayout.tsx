@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   BarChart3,
   Building2,
+  HelpCircle,
   ClipboardList,
   Flag,
   KeyRound,
@@ -21,6 +22,7 @@ const NAV = [
   { to: "/", label: "看板", icon: BarChart3, end: true },
   { to: "/invites", label: "邀请码管理", icon: KeyRound },
   { to: "/announcements", label: "公告管理", icon: Megaphone },
+  { to: "/faqs", label: "FAQ 管理", icon: HelpCircle },
   { to: "/items", label: "内容巡查", icon: Package },
   { to: "/reports", label: "举报处置", icon: Flag },
   { to: "/pending-content", label: "内容审核", icon: ShieldAlert },
