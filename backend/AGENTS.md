@@ -12,12 +12,14 @@ app/
 ├── main.py          # 入口：路由注册、APScheduler 每日沉底任务(3am)、/healthz、/uploads 静态
 ├── api/             # 15 个业务 router（auth/users/community/items/wants/messages/chat/trades/
 │                    #   favorites/gratitudes/reports/notifications/uploads/wechat_callback）+ admin/
+│                    #   admin/api.py = 管理后台 JSON API（/api/admin/*，SPA 用，docs/08）；原 SSR 已删
 ├── models/          # community(社区/邀请码/担保/人工审核) user item chat(会话/私信/联系交换)
 │                    #   trade(交易/评价/感谢) system(举报/审核/通知/订阅/管理) —— 22 张表
 ├── schemas/         # Pydantic 入参（__init__.py）+ 全部响应序列化（serialize.py，改字段必看）
 ├── services/        # wechat(mock/cloud/token 三模式) sec_check(先检后发+降级) credit(信用)
 │                    #   expiry(沉底/归档) notify(站内通知必达+订阅消息增强)
 └── core/            # config(.env) deps(三级鉴权) errors(ApiError) security password/openid time(ISO UTC)
+（Jinja2 管理后台模板已于 React 重构中删除；admin 页面源码在仓库根 admin-web/）
 alembic/versions/    # f91b070d8b1d(初始) → b7d2e4a91c58(联系方式交换) → c5f8d3e27a91(多社区SaaS)；新迁移挂链尾
 tests/               # pytest + TestClient，sqlite + mock；conftest 提供 client/db/community/users/hdr/publish
 scripts/seed.py      # 建表(Base.metadata.create_all)+社区+admin+演示用户/物品/邀请码（幂等）

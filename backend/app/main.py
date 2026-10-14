@@ -1,6 +1,7 @@
 import logging
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
@@ -8,7 +9,7 @@ from starlette.staticfiles import StaticFiles
 
 import app.models  # noqa: F401  确保所有模型注册到 Base.metadata
 from app.api import api_router
-from app.api.admin import admin_api_router, admin_router
+from app.api.admin import admin_api_router  # SSR 路由已在 React 重构（docs/08 M5）中移除
 from app.core.config import settings
 from app.core.errors import ApiError, api_error_handler
 
@@ -47,11 +48,36 @@ app = FastAPI(title="nswap API", version="1.0.0", lifespan=lifespan)
 app.add_middleware(SessionMiddleware, secret_key=settings.admin_session_secret)
 app.add_exception_handler(ApiError, api_error_handler)
 app.include_router(api_router)
-app.include_router(admin_router)
 app.include_router(admin_api_router)
 
 os.makedirs(settings.upload_dir, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
+
+# ---- 管理后台 SPA（admin-web/dist，docs/08 §7）：注册在所有 API 路由之后 ----
+from fastapi.responses import FileResponse
+
+# 本地：仓库根/admin-web/dist（三层）；容器：/app/admin-web/dist（两层）
+_admin_dist = next(
+    (
+        p
+        for p in [
+            Path(__file__).resolve().parent.parent / "admin-web" / "dist",
+            Path(__file__).resolve().parent.parent.parent / "admin-web" / "dist",
+        ]
+        if (p / "index.html").exists()
+    ),
+    None,
+)
+if _admin_dist:
+    app.mount("/admin/assets", StaticFiles(directory=_admin_dist / "assets"), name="admin-assets")
+
+    @app.get("/admin", include_in_schema=False)
+    def admin_index():
+        return FileResponse(_admin_dist / "index.html")
+
+    @app.get("/admin/{path:path}", include_in_schema=False)
+    def admin_spa(path: str):
+        return FileResponse(_admin_dist / "index.html")
 
 
 @app.get("/healthz")

@@ -1,6 +1,14 @@
 # 08 · 管理后台 React 重构详设
 
-> 状态：待评审（分支 `feat/saas-multitenant`）｜前置：v0.1.0 + 多社区 SaaS（docs/07 已实施）
+> 状态：**已实施**（分支 `feat/saas-multitenant`，pytest 36 项 + SPA 挂载/API/越权 curl 实测全过）
+> 实施修订（M1-M4 中发现并回写）：
+> ① **M4/M5 合并执行**：/admin 前缀冲突——SSR 不先让位，SPA 无法挂载验收；因此 M4 即删除 SSR 路由与 templates；
+> ② **组件未用 shadcn CLI**：改为其"代码归项目所有"模式的手绘实现（Radix Dialog + Tailwind，品牌色 #0E7A5A），
+>    避免 CLI 交互与外部 registry 依赖；视觉与 shadcn 一致；
+> ③ **dist 路径双候选探测**：本地（仓库根/admin-web/dist，三层）与容器（/app/admin-web/dist，两层）布局不同，
+>    main.py 按候选列表探测；
+> ④ 举报处置 Dialog 的 decision 直接作为 mutate 参数（避免 React setState 闭包旧值 bug）；
+> ⑤ 依赖版本：Tailwind v4（@tailwindcss/vite）+ Vite 6 + React 18 + Radix Dialog + sonner，构建产物 gzip 101KB。
 > 现状：管理后台为 FastAPI + Jinja2 SSR + Bootstrap（原单社区 MVP 取舍，"免前端构建链"），
 > UI 非生产级、交互为整页刷新，且已暴露模板级 bug（如 Jinja2 3.x 无 `| zip` 过滤器导致的 500）。
 > 原则：**文档即蓝图**；实施中的偏差必须回写本文。

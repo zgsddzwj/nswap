@@ -9,6 +9,7 @@
 ```
 backend/        FastAPI 后端（已完成，见 backend/AGENTS.md）
 miniprogram/    微信原生小程序前端 + TypeScript + TDesign（见 miniprogram/AGENTS.md）
+admin-web/      管理后台 SPA（Vite+React+TS+Tailwind，见 docs/08；dist 由 FastAPI 挂载到 /admin）
 docs/           01调研 02PRD 03技术方案 04API契约 05上线Checklist 06运营手册 —— 文档即蓝图
 .zcode/plans/   历史开发会话的实施方案（只读参考，勿改）
 ```
@@ -41,6 +42,9 @@ cd miniprogram && npm run typecheck                 # tsc --noEmit，改代码�
 - 本机 pip 装包必须加 `--only-binary :all:`（否则 cryptography 会走源码编译并卡死）；
   npm 用 `--registry=https://registry.npmmirror.com`；GitHub 直连常超时，克隆用 SSH。
 - 演示身份与 `backend/scripts/seed.py` 一致：`dev_alice` / `dev_bob` / `dev_carol`（下划线）。
+- 管理后台：React SPA 源码在 `admin-web/`（构建 `npm run build`，产物 dist 由 FastAPI 挂载 /admin）；
+  JSON API 在 `/api/admin/*`（见 backend/AGENTS.md）；dev 用 `npm run dev`（5173，proxy 已配）。
+  物业账号 `wy_admin`、超管 `admin`（演示密码 nswap123）。
 
 ## 多社区 SaaS 要点（feat/saas-multitenant 起）
 

@@ -4,7 +4,7 @@
 
 **联系方式交换**（隐私优先）：住户在「我的」主动填写并开启后（默认不开放），交易双方可在会话内互相交换联系方式；仅已验证住户可发起，每人每日 3 次额度，双向解锁、双向通知、全程留痕，防止爬取与骚扰。
 
-**多社区 SaaS**（docs/07）：小区 = 租户，住户经物业邀请码进入本小区；首页「本小区｜同城」双 Tab，同城可浏览本市其他小区物品并完整交易（跨小区隐藏楼栋号、仅支持当面交接）；物业公告仅本小区可见；管理后台两级分权——平台超管（admin/nswap123，开通小区/全局管理）与物业管理员（wy_admin/nswap123 演示，仅本小区邀请码/公告/巡查/举报/审核）。
+**多社区 SaaS**（docs/07）：小区 = 租户，住户经物业邀请码进入本小区；首页「本小区｜同城」双 Tab，同城可浏览本市其他小区物品并完整交易（跨小区隐藏楼栋号、仅支持当面交接）；物业公告仅本小区可见；管理后台两级分权——平台超管（admin/nswap123，开通小区/全局管理）与物业管理员（wy_admin/nswap123 演示，仅本小区邀请码/公告/巡查/举报/审核）。后台为 React SPA（`admin-web/`，Vite+TS+Tailwind），经 `/api/admin/*` JSON API 与后端通信，构建产物由 FastAPI 挂载（同源，见 docs/08）。
 
 ```
 ├── backend/       FastAPI 后端（17+ 表、内容安全、交易状态机、管理后台、pytest）
@@ -27,7 +27,9 @@ cd miniprogram
 npm install
 npm run build:td   # 把 tdesign-miniprogram 构建到 miniprogram_npm/
 
-# 3. 微信开发者工具导入 miniprogram/ 目录
+# 3. （可选）构建管理后台前端——不构建也能跑，backend 已含最近一次构建产物
+cd admin-web && npm install --registry=https://registry.npmmirror.com && npm run build && cd ..
+# 3'. 微信开发者工具导入 miniprogram/ 目录
 #    测试号（touristappid）即可打开，无需 AppID
 #    项目已配置「不校验合法域名」，本地直连 http://127.0.0.1:8000
 ```

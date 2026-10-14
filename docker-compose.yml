@@ -19,7 +19,9 @@ services:
       retries: 20
 
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: nswap-backend
     environment:
       ENV: dev
