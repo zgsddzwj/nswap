@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db, get_verified_user
-from app.core.errors import not_found
+from app.core.errors import forbidden, not_found
 from app.core.time import iso, utcnow
 from app.models import Item, ItemMessage, User
 from app.schemas import ItemMessageCreate
@@ -21,6 +21,8 @@ def list_messages(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    if not user.community_id:
+        raise forbidden("完成小区验证后查看内容")
     item = db.get(Item, item_id)
     if item is None:
         raise not_found()

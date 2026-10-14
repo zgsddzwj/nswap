@@ -11,6 +11,7 @@ Page({
   data: {
     loading: true,
     loadError: false,
+    needJoin: false,
     user: null as UserSummary | null,
     items: [] as ItemCardData[],
     rate: "--",
@@ -37,9 +38,17 @@ Page({
         done: tradesDone(r.user.stats),
         joined: relTime(r.user.created_at),
       });
-    } catch (e) {
-      this.setData({ loading: false, loadError: true });
+    } catch (e: any) {
+      this.setData({
+        loading: false,
+        loadError: true,
+        needJoin: e && e.status === 403,
+      });
     }
+  },
+
+  goVerify() {
+    wx.navigateTo({ url: "/pages/verify/verify" });
   },
 
   onRetry() {

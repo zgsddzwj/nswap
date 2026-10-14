@@ -12,6 +12,15 @@
   </block>
 
   <empty-state
+    wx:elif="{{needJoin}}"
+    icon="notification"
+    text="加入小区后查看内容"
+    sub="本小区内容仅对已验证住户可见"
+    actionText="去完成小区验证"
+    bind:action="goVerify"
+  />
+
+  <empty-state
     wx:elif="{{loadError}}"
     icon="error-circle"
     text="加载失败"

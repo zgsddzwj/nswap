@@ -94,6 +94,15 @@
   />
 
   <empty-state
+    wx:elif="{{!firstLoading && !items.length && !loadError && scope === 'city' && !joined}}"
+    icon="notification"
+    text="加入小区后浏览同城闲置"
+    sub="完成验证解锁浏览与交换"
+    actionText="去完成小区验证"
+    bind:action="goVerify"
+  />
+
+  <empty-state
     wx:elif="{{!firstLoading && !items.length && !loadError}}"
     icon="shop"
     text="{{scope === 'community' ? '本小区还没有闲置物品' : '同城暂无闲置物品'}}"

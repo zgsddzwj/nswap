@@ -8,6 +8,16 @@
     </view>
   </block>
 
+  <!-- 未加入小区：准入引导 -->
+  <empty-state
+    wx:elif="{{needJoin}}"
+    icon="notification"
+    text="加入小区后查看内容"
+    sub="本小区内容仅对已验证住户可见"
+    actionText="去完成小区验证"
+    bind:action="goVerify"
+  />
+
   <!-- 加载失败 -->
   <empty-state
     wx:elif="{{loadError}}"

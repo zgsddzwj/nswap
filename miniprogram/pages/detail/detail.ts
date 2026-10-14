@@ -45,6 +45,8 @@ const REPORT_REASONS = ["禁售物品", "涉嫌虚假", "内容违规", "其他"
 Page({  data: {
     loading: true,
     loadError: false,
+    needJoin: false,
+    joined: true,
     d: null as ItemDetail | null,
     typeMeta: ITEM_TYPE_MAP.sell,
     priceInt: "0",
@@ -87,7 +89,9 @@ Page({  data: {
   onShow() {
     // 从 want-sheet/trade 返回时刷新状态（浏览量等）
     if (!this.data.loading && this.id) {
-      refreshMe();
+      refreshMe().then((me) => {
+        if (me) this.setData({ joined: !!me.user.community_id || !!me.user.verified });
+      });
       this.fetchDetail(true);
     }
   },
@@ -99,8 +103,13 @@ Page({  data: {
       this.applyDetail(d);
       this.setData({ loading: false });
       this.loadMessages(true);
-    } catch (e) {
-      this.setData({ loading: false, loadError: true });
+    } catch (e: any) {
+      // 未加入小区 → 引导验证（403）；其余为不存在/网络错误
+      this.setData({
+        loading: false,
+        loadError: true,
+        needJoin: e && e.status === 403,
+      });
     }
   },
 
@@ -438,6 +447,10 @@ Page({  data: {
 
   onRetry() {
     this.fetchDetail();
+  },
+
+  goVerify() {
+    wx.navigateTo({ url: "/pages/verify/verify" });
   },
 
   goBack() {

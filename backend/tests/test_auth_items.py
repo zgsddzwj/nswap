@@ -16,11 +16,15 @@ def test_login_auto_creates_guest(client, community, users):
     # 先由已验证住户发布一件物品
     assert publish(client, "dev_alice", type="give", title="免费绘本",
                    price_cents=None, condition=None, category="book").status_code == 200
-    # 游客：本小区 feed 为空，同城 feed 可见全部
+    # 游客（准入制，docs/09 修订）：本小区与同城 feed 均为空，加入后才可见
     r = client.get("/api/items?scope=community", headers=hdr("dev_new"))
     assert r.json()["data"]["list"] == []
     r = client.get("/api/items?scope=city", headers=hdr("dev_new"))
-    assert len(r.json()["data"]["list"]) == 1
+    assert r.json()["data"]["list"] == []
+    # 游客详情/主页/留言板 → 403
+    assert client.get("/api/items/1", headers=hdr("dev_new")).status_code == 403
+    assert client.get("/api/users/1", headers=hdr("dev_new")).status_code == 403
+    assert client.get("/api/items/1/messages", headers=hdr("dev_new")).status_code == 403
 
 
 def test_guest_cannot_publish(client, db, community):

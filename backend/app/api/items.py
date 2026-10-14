@@ -93,16 +93,18 @@ def list_items(
             or_(Item.sec_status == "pass", Item.user_id == user.id, user.role == "admin")
         )
         if scope == "city":
-            # 同城：本小区所在城市的全部 active 小区；未加入小区的游客可见全部
+            # 同城：本小区所在城市的全部 active 小区（docs/09 修订：准入制，
+            # 未加入小区的游客返回空列表并引导验证，不再开放浏览）
             from app.models import Community
 
+            if not user.community_id:
+                return ok({"list": [], "next_cursor": None})
+            own = db.get(Community, user.community_id)
             city_q = db.query(Community.id).filter(
                 Community.status == "active", Community.city != ""
             )
-            if user.community_id:
-                own = db.get(Community, user.community_id)
-                if own and own.city:
-                    city_q = city_q.filter(Community.city == own.city)
+            if own and own.city:
+                city_q = city_q.filter(Community.city == own.city)
             q = q.filter(Item.community_id.in_(city_q))
         elif user.community_id:
             # 本小区（默认）
@@ -196,6 +198,8 @@ def get_item(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    if not user.community_id:
+        raise forbidden("完成小区验证后查看内容")
     item = _get_item_or_404(db, item_id)
     item.view_count += 1
     db.commit()

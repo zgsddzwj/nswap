@@ -68,7 +68,7 @@ reports.target_type 扩展：'post' | 'comment'
 ### 用户端（均需登录；发帖/评论需已验证住户）
 | 接口 | 说明 |
 |---|---|
-| `GET /api/posts?cursor&limit&type?(topic\|faq)` | 本小区帖子 feed：置顶(faq/pinned)优先 → last_active_at 倒序；游客只读 |
+| `GET /api/posts?cursor&limit&type?(topic\|faq)` | 本小区帖子 feed：置顶(faq/pinned)优先 → last_active_at 倒序；游客不可见（准入制，docs/09 修订） |
 | `POST /api/posts` | `{type: "topic", title, content, images?}`；faq 仅物业/超管经管理端发布；**频控 5 帖/天**；title+content 过 msgSecCheck（fail-closed → sec_status=pending 仅作者可见，走 P1-7 人工处置） |
 | `GET /api/posts/{id}` | 详情：内容/图片/作者摘要/点赞数/是否已赞/评论分页 |
 | `DELETE /api/posts/{id}` | 作者删除 |
