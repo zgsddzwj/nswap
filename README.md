@@ -64,6 +64,8 @@ cd admin-web && npm install --registry=https://registry.npmmirror.com && npm run
 | 错误监控 | `SENTRY_DSN=`（留空不启用） | 接入后 5xx 自动上报；请求带 `X-Request-Id` 便于排查 |
 | 备份 | `backend/scripts/backup.sh` / `restore.sh` | 另需在云托管控制台开启 MySQL 每日自动备份（保留 ≥7 天） |
 | 协议与注销 | `TERMS_VERSION` 常量 | 变更即触发小程序重新同意；住户可在「我的」自助注销 |
+| 图片安全 | 自动（上传管线） | 上传图片统一**清除 EXIF（含 GPS）**+ 加平台水印 + HEIC 转 JPEG（docs/11） |
+| 智能分类 | 自动（发布免选分类） | 标题关键词自动归类；词表在 `services/categorize.py`，按运营数据补词 |
 | CI | `.github/workflows/ci.yml` | push/PR 自动跑后端 pytest + 后台构建 + 小程序类型/结构校验 |
 
 ## 已知事项
