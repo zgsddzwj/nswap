@@ -1,5 +1,5 @@
 import { get } from "../../services/api";
-import { Me, getMe, refreshMe, refreshUnreadBadge } from "../../services/auth";
+import { Me, getMe, refreshMe, refreshUnreadBadge, redirectIfNotVerified } from "../../services/auth";
 import { createListLoader, ListLoader } from "../../utils/list";
 import { ItemType } from "../../utils/constants";
 

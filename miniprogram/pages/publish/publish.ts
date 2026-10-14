@@ -1,4 +1,4 @@
-import { getMe, refreshMe, Me } from "../../services/auth";
+import { getMe, refreshMe, Me, redirectIfNotVerified } from "../../services/auth";
 import { ITEM_TYPES, EnumMeta, ItemType } from "../../utils/constants";
 
 Page({
@@ -14,7 +14,9 @@ Page({
       this.setData({ verified: !!cached.user.verified });
     }
     refreshMe().then((me: Me | null) => {
-      if (me) this.setData({ verified: !!me.user.verified });
+      if (!me) return; // 网络错误防死循环
+      if (redirectIfNotVerified(me)) return; // 未验证：强拦截去验证页
+      this.setData({ verified: !!me.user.verified });
     });
   },
 

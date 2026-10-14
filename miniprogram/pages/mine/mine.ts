@@ -1,5 +1,5 @@
 import { put, get, post, toastError } from "../../services/api";
-import { Me, getMe, refreshMe, setMe } from "../../services/auth";
+import { Me, getMe, refreshMe, setMe, redirectIfNotVerified } from "../../services/auth";
 import { setDevOpenid, devOpenid } from "../../services/api";
 import { LOCAL_DEV, ADMIN_URL, DEV_IDENTITIES } from "../../config/index";
 import { uploadImage } from "../../services/upload";
@@ -36,6 +36,7 @@ Page({
   onShow() {
     this.applyMe(getMe());
     refreshMe().then((me) => {
+      if (redirectIfNotVerified(me)) return; // 未验证：强拦截
       if (me) this.applyMe(me);
     });
     if (LOCAL_DEV) this.setData({ currentIdentity: devOpenid() });

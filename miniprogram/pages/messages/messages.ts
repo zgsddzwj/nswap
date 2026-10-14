@@ -1,5 +1,5 @@
 import { get, post, toastError } from "../../services/api";
-import { refreshUnreadBadge } from "../../services/auth";
+import { refreshUnreadBadge, refreshMe, redirectIfNotVerified } from "../../services/auth";
 import { createListLoader, ListLoader } from "../../utils/list";
 import { NOTIFY_META, NOTIFY_FALLBACK } from "../../utils/constants";
 import { relTime } from "../../utils/format";
@@ -42,9 +42,12 @@ Page({
   },
 
   onShow() {
-    refreshUnreadBadge();
-    this.loadConversations();
-    if (this.loader) this.loader.refresh();
+    refreshMe().then((me) => {
+      if (redirectIfNotVerified(me)) return; // 未验证：强拦截
+      refreshUnreadBadge();
+      this.loadConversations();
+      if (this.loader) this.loader.refresh();
+    });
   },
 
   initLoader() {

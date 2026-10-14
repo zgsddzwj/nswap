@@ -81,6 +81,18 @@ export function setMe(next: Me) {
   emit();
 }
 
+/**
+ * 准入制守卫（docs/10 修订）：未加入小区（未验证）的游客统一停在验证页，
+ * 不进入任何内容页——避免各页 403 闪烁。已加入/请求失败（网络错误防死循环）返回 false。
+ */
+export function redirectIfNotVerified(me: Me | null): boolean {
+  if (me && !me.user.verified) {
+    wx.reLaunch({ url: "/pages/verify/verify" });
+    return true;
+  }
+  return false;
+}
+
 /** 消息 tab 未读角标（home/mine/messages 的 onShow 调用） */
 export async function refreshUnreadBadge() {
   try {
