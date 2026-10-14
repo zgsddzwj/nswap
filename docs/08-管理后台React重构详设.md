@@ -8,7 +8,10 @@
 > ③ **dist 路径双候选探测**：本地（仓库根/admin-web/dist，三层）与容器（/app/admin-web/dist，两层）布局不同，
 >    main.py 按候选列表探测；
 > ④ 举报处置 Dialog 的 decision 直接作为 mutate 参数（避免 React setState 闭包旧值 bug）；
-> ⑤ 依赖版本：Tailwind v4（@tailwindcss/vite）+ Vite 6 + React 18 + Radix Dialog + sonner，构建产物 gzip 101KB。
+> ⑤ 依赖版本：Tailwind v4（@tailwindcss/vite）+ Vite 6 + React 18 + Radix Dialog + sonner，构建产物 gzip 101KB；
+> ⑥ **路由 basename 修正**（用户验收发现）：BrowserRouter basename="/admin" 下所有 `to`/`navigate` 必须用
+>    basename 内相对路径（如 `/invites` 而非 `/admin/invites`），否则跳到 /admin/admin/* 被兜底重定向回看板，
+>    表现为"二级页面无法跳转"；登录成功需 qc.clear() 清理登录前的 401 错误缓存。
 > 现状：管理后台为 FastAPI + Jinja2 SSR + Bootstrap（原单社区 MVP 取舍，"免前端构建链"），
 > UI 非生产级、交互为整页刷新，且已暴露模板级 bug（如 Jinja2 3.x 无 `| zip` 过滤器导致的 500）。
 > 原则：**文档即蓝图**；实施中的偏差必须回写本文。

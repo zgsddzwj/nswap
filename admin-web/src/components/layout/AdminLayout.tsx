@@ -14,18 +14,19 @@ import {
 import { useAdmin } from "@/lib/auth";
 import { api } from "@/lib/api";
 
+// 注意：BrowserRouter basename="/admin"，所有 to 都是 basename 内的相对路径（docs/08 修订）
 const NAV = [
-  { to: "/admin", label: "看板", icon: BarChart3, end: true },
-  { to: "/admin/invites", label: "邀请码管理", icon: KeyRound },
-  { to: "/admin/announcements", label: "公告管理", icon: Megaphone },
-  { to: "/admin/items", label: "内容巡查", icon: Package },
-  { to: "/admin/reports", label: "举报处置", icon: Flag },
-  { to: "/admin/users", label: "用户管理", icon: Users },
+  { to: "/", label: "看板", icon: BarChart3, end: true },
+  { to: "/invites", label: "邀请码管理", icon: KeyRound },
+  { to: "/announcements", label: "公告管理", icon: Megaphone },
+  { to: "/items", label: "内容巡查", icon: Package },
+  { to: "/reports", label: "举报处置", icon: Flag },
+  { to: "/users", label: "用户管理", icon: Users },
 ];
 
 const SUPER_NAV = [
-  { to: "/admin/communities", label: "小区管理", icon: Building2, end: false },
-  { to: "/admin/sec-checks", label: "内容安全记录", icon: ShieldCheck, end: false },
+  { to: "/communities", label: "小区管理", icon: Building2, end: false },
+  { to: "/sec-checks", label: "内容安全记录", icon: ShieldCheck, end: false },
 ];
 
 export function AdminLayout() {
@@ -36,7 +37,7 @@ export function AdminLayout() {
     return <div className="flex h-full items-center justify-center text-sm text-slate-400">加载中…</div>;
   }
   if (!admin) {
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to="/login" replace />;
   }
   const isSuper = admin.role === "super";
   const communityLabel = isSuper ? "平台超管" : `物业管理员 · ${admin.community?.name ?? ""}`;

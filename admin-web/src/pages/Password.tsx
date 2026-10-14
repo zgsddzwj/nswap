@@ -16,7 +16,7 @@ export function Password() {
     mutationFn: () => api("POST", "/api/admin/password", { old_password: oldPassword, new_password: newPassword }),
     onSuccess: () => {
       toast.success("密码已修改，请重新登录");
-      navigate("/admin/login");
+      navigate("/login");
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "修改失败"),
   });

@@ -37,7 +37,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Route path="sec-checks" element={<SecChecks />} />
             <Route path="password" element={<Password />} />
           </Route>
-          <Route path="*" element={<Navigate to="/admin" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
       <Toaster position="top-center" richColors />

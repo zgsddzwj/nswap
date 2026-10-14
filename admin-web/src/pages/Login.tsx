@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Input";
@@ -10,6 +11,7 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const qc = useQueryClient();
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -17,8 +19,9 @@ export function Login() {
     setLoading(true);
     try {
       await api("POST", "/api/admin/auth/login", { username, password });
+      qc.clear(); // 清掉登录前的 401 错误缓存
       toast.success("登录成功");
-      navigate("/admin");
+      navigate("/");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "登录失败");
     } finally {
