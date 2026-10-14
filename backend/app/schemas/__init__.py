@@ -104,3 +104,49 @@ class ReadRequest(BaseModel):
 
 class SubscribeRequest(BaseModel):
     template_key: str  # want | accepted | confirm | review
+
+
+# ---------- 管理后台 JSON API（docs/08 §4） ----------
+
+class AdminLoginRequest(BaseModel):
+    username: str = Field(min_length=1, max_length=30)
+    password: str = Field(min_length=1, max_length=100)
+
+
+class AdminInviteCreateRequest(BaseModel):
+    building: str = Field(min_length=1, max_length=20)
+    count: int = Field(default=10, ge=1, le=100)
+    days: int = Field(default=14, ge=1, le=90)
+    batch_note: str = Field(default="", max_length=100)
+    community_id: int | None = None  # 仅超管生效
+
+
+class AdminAnnouncementCreateRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=100)
+    content: str = Field(min_length=1, max_length=5000)
+    community_id: int | None = None  # 仅超管生效
+
+
+class AdminReportHandleRequest(BaseModel):
+    decision: str  # resolve | dismiss
+    apply_action: bool = False
+    note: str = Field(default="", max_length=200)
+
+
+class AdminCommunityCreateRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=50)
+    city: str = Field(min_length=1, max_length=50)
+    district: str = Field(default="", max_length=50)
+    address: str = Field(default="", max_length=200)
+    admin_username: str = Field(min_length=3, max_length=30)
+    admin_name: str = Field(default="", max_length=30)
+    admin_password: str = Field(min_length=8, max_length=64)
+
+
+class AdminPasswordChangeRequest(BaseModel):
+    old_password: str = Field(min_length=1, max_length=100)
+    new_password: str = Field(min_length=8, max_length=64)
+
+
+class AdminVerifyRejectRequest(BaseModel):
+    note: str = Field(default="", max_length=200)

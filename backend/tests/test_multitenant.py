@@ -217,41 +217,41 @@ def property_admin(db, community):
 
 
 def _login_admin(client, username, password):
-    return client.post(
-        "/admin/login", data={"username": username, "password": password}, follow_redirects=False
-    )
+    return client.post("/api/admin/auth/login", json={"username": username, "password": password})
 
 
 def test_property_admin_scoped(client, db, community, community2, users, dave, property_admin):
-    assert _login_admin(client, "wy_test", "password123").status_code == 303
-    # 页面只见本小区数据
-    html = client.get("/admin/invites").text
-    assert "阳光花园" in html and "幸福里" not in html
-    html = client.get("/admin/users").text
-    assert "2栋-大伟" not in html
-    # 手输超管页面 → 403
-    assert client.get("/admin/communities").status_code == 403
-    assert client.get("/admin/sec-checks").status_code == 403
+    assert _login_admin(client, "wy_test", "password123").status_code == 200
+    # 列表只见本小区数据
+    rows = client.get("/api/admin/invites").json()["data"]["list"]
+    assert all(x["community_name"] == "阳光花园" for x in rows)
+    rows = client.get("/api/admin/users").json()["data"]["list"]
+    assert all(x["community_name"] == "阳光花园" for x in rows) and rows
+    # 超管专属接口 → 403
+    assert client.get("/api/admin/communities").status_code == 403
+    assert client.get("/api/admin/sec-checks").status_code == 403
     # 跨小区写操作 → 403
-    r = client.post(f"/admin/users/{dave.id}/ban", follow_redirects=False)
+    r = client.post(f"/api/admin/users/{dave.id}/ban")
     assert r.status_code == 403
 
 
 def test_super_admin_global_view(client, db, community, community2, users, dave, property_admin):
     make_admin(db)
-    assert _login_admin(client, "admin", "nswap123").status_code == 303
-    html = client.get("/admin/communities").text
-    assert "阳光花园" in html and "幸福里" in html
-    html = client.get("/admin/users").text
-    assert "2栋-大伟" in html  # 超管全局可见
+    r = _login_admin(client, "admin", "nswap123")
+    assert r.status_code == 200
+    # 看板含小区概览；用户列表全局可见
+    stats = client.get("/api/admin/stats").json()["data"]
+    names = {x["name"] for x in stats["communities_overview"]}
+    assert {"阳光花园", "幸福里"} <= names
+    rows = client.get("/api/admin/users").json()["data"]["list"]
+    assert any(x["nickname"] == "2栋-大伟" for x in rows)  # 超管全局可见
     # 超管创建小区 + 物业账号
     r = client.post(
-        "/admin/communities",
-        data={"name": "翡翠湾", "city": "测试市", "district": "", "address": "",
+        "/api/admin/communities",
+        json={"name": "翡翠湾", "city": "测试市", "district": "", "address": "",
               "admin_username": "wy_fcw", "admin_name": "翡翠湾物业", "admin_password": "password456"},
-        follow_redirects=False,
     )
-    assert r.status_code == 303
+    assert r.status_code == 200
     c = db.query(Community).filter(Community.name == "翡翠湾").first()
     assert c is not None and c.city == "测试市"
     a = db.query(AdminUser).filter(AdminUser.username == "wy_fcw").first()
@@ -259,25 +259,28 @@ def test_super_admin_global_view(client, db, community, community2, users, dave,
 
 
 def test_admin_announcements_and_password(client, db, community, property_admin):
-    assert _login_admin(client, "wy_test", "password123").status_code == 303
+    assert _login_admin(client, "wy_test", "password123").status_code == 200
     # 物业发布公告（自动绑定本小区）
     r = client.post(
-        "/admin/announcements",
-        data={"title": "本周六交换日", "content": "9:00 小区广场"},
-        follow_redirects=False,
+        "/api/admin/announcements",
+        json={"title": "本周六交换日", "content": "9:00 小区广场"},
     )
-    assert r.status_code == 303
+    assert r.status_code == 200
     ann = db.query(Announcement).order_by(Announcement.id.desc()).first()
     assert ann.community_id == community.id and ann.title == "本周六交换日"
     # 删除
-    r = client.post(f"/admin/announcements/{ann.id}/delete", follow_redirects=False)
-    assert r.status_code == 303
+    r = client.delete(f"/api/admin/announcements/{ann.id}")
+    assert r.status_code == 200
     assert db.query(Announcement).count() == 0
-    # 自助改密码
+    # 自助改密码：旧错 400；改后旧失效新可用
     r = client.post(
-        "/admin/password",
-        data={"old_password": "password123", "new_password": "newpass456"},
-        follow_redirects=False,
+        "/api/admin/password", json={"old_password": "wrong", "new_password": "newpass456"}
     )
-    assert r.status_code == 303
-    assert _login_admin(client, "wy_test", "newpass456").status_code == 303
+    assert r.status_code == 400
+    r = client.post(
+        "/api/admin/password", json={"old_password": "password123", "new_password": "newpass456"}
+    )
+    assert r.status_code == 200
+    client.cookies.clear()
+    assert _login_admin(client, "wy_test", "password123").status_code == 401
+    assert _login_admin(client, "wy_test", "newpass456").status_code == 200

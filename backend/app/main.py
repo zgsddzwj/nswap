@@ -8,7 +8,7 @@ from starlette.staticfiles import StaticFiles
 
 import app.models  # noqa: F401  确保所有模型注册到 Base.metadata
 from app.api import api_router
-from app.api.admin.routes import router as admin_router
+from app.api.admin import admin_api_router, admin_router
 from app.core.config import settings
 from app.core.errors import ApiError, api_error_handler
 
@@ -48,6 +48,7 @@ app.add_middleware(SessionMiddleware, secret_key=settings.admin_session_secret)
 app.add_exception_handler(ApiError, api_error_handler)
 app.include_router(api_router)
 app.include_router(admin_router)
+app.include_router(admin_api_router)
 
 os.makedirs(settings.upload_dir, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")

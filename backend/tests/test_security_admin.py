@@ -90,7 +90,8 @@ def test_expiry_scan(client, db, community, users):
     assert item2.status == "archived"
 
 
-def test_report_and_admin_flow(client, db, community, users):
+def test_report_and_admin_flow_json(client, db, community, users):
+    """管理后台 JSON API 全流程（docs/08 §4）：举报处置→邀请码→登录语义。"""
     # 用户举报物品
     r = publish(client, "dev_alice", title="被举报物品")
     item_id = r.json()["data"]["id"]
@@ -101,40 +102,42 @@ def test_report_and_admin_flow(client, db, community, users):
     )
     assert r.status_code == 200
 
-    # 管理后台登录
+    # 管理后台 JSON 登录
     make_admin(db)
-    r = client.post(
-        "/admin/login", data={"username": "admin", "password": "nswap123"}, follow_redirects=False
-    )
-    assert r.status_code == 303
+    r = client.post("/api/admin/auth/login", json={"username": "admin", "password": "nswap123"})
+    assert r.status_code == 200
+    assert r.json()["data"]["role"] == "super"
 
-    # 举报处置：resolve + 自动下架
+    # 举报列表含服务端解析的目标文本；resolve + 自动下架
+    r = client.get("/api/admin/reports?status=pending")
+    assert r.status_code == 200
+    row = r.json()["data"]["list"][0]
+    assert "被举报物品" in row["target_text"]
     r = client.post(
-        "/admin/reports/1", data={"decision": "resolve", "apply_action": "true", "note": "已下架"},
-        follow_redirects=False,
+        f"/api/admin/reports/{row['id']}",
+        json={"decision": "resolve", "apply_action": True, "note": "已下架"},
     )
-    assert r.status_code == 303
+    assert r.status_code == 200
     db.expire_all()
     item = db.get(Item, item_id)
     assert item.status == "archived"
 
     # 生成邀请码（超管需显式选择目标小区）
     r = client.post(
-        "/admin/invites",
-        data={"building": "9栋", "count": "3", "days": "14", "batch_note": "测试批次",
-              "community_id": str(community.id)},
-        follow_redirects=False,
+        "/api/admin/invites",
+        json={"building": "9栋", "count": 3, "days": 14, "batch_note": "测试批次",
+              "community_id": community.id},
     )
-    assert r.status_code == 303
+    assert r.status_code == 200
     from app.models import Invite
 
     assert db.query(Invite).filter(Invite.building == "9栋").count() == 3
 
-    # 错误密码登录失败
+    # 错误密码登录失败；未登录访问 401
     client.cookies.clear()
-    r = client.post(
-        "/admin/login", data={"username": "admin", "password": "wrong"}, follow_redirects=False
-    )
+    r = client.post("/api/admin/auth/login", json={"username": "admin", "password": "wrong"})
+    assert r.status_code == 401
+    r = client.get("/api/admin/stats")
     assert r.status_code == 401
 
 
