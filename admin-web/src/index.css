@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #0e7a5a;
+  --color-brand-active: #0a5f46;
+  --color-brand-light: #e7f3ee;
+  --color-danger: #c9453b;
+  --color-warn: #b0812e;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-slate-100 text-slate-800 antialiased;
+  font-family: var(--font-sans);
+}
