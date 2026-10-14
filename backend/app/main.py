@@ -12,8 +12,21 @@ from app.api import api_router
 from app.api.admin import admin_api_router  # SSR 路由已在 React 重构（docs/08 M5）中移除
 from app.core.config import settings
 from app.core.errors import ApiError, api_error_handler
+from app.core.middleware import GlobalRateLimitMiddleware, RequestContextMiddleware
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+
+# ---- Sentry（docs/09 P0-5）：DSN 为空则完全不启用（本地零影响）----
+if settings.sentry_dsn:
+    import sentry_sdk
+
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        environment=settings.environment,
+        traces_sample_rate=settings.sentry_traces_sample_rate,
+        send_default_pii=False,
+    )
+    logging.getLogger(__name__).info("Sentry 已启用（environment=%s）", settings.environment)
 
 
 @asynccontextmanager
@@ -46,6 +59,8 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="nswap API", version="1.0.0", lifespan=lifespan)
 app.add_middleware(SessionMiddleware, secret_key=settings.admin_session_secret)
+app.add_middleware(GlobalRateLimitMiddleware)
+app.add_middleware(RequestContextMiddleware)  # 最外层：日志/RequestId 覆盖全部请求
 app.add_exception_handler(ApiError, api_error_handler)
 app.include_router(api_router)
 app.include_router(admin_api_router)

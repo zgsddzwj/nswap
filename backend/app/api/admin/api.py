@@ -4,6 +4,7 @@
 信封沿用 {code, message, data}；401=未登录、403=越权；分页 page/page_size/total。
 """
 
+import logging
 from datetime import timedelta
 from typing import Any
 
@@ -37,8 +38,17 @@ from app.schemas import (
     AdminVerifyRejectRequest,
 )
 from app.schemas.serialize import ok
+from app.services.rate_limit import check_rate, get_failure_tracker
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/admin", tags=["admin-api"])
+
+# 登录防爆破（docs/09 P0-2）
+LOGIN_IP_LIMIT = 10        # 每 IP 5 分钟
+LOGIN_IP_WINDOW = 300
+LOGIN_FAIL_LIMIT = 5       # 同账号连续失败
+LOGIN_LOCK_WINDOW = 900    # 锁定 15 分钟
 
 
 # ---------- 鉴权与权限 ----------
@@ -106,9 +116,28 @@ def admin_dto(db: Session, admin: AdminUser) -> dict:
 
 @router.post("/auth/login")
 def login(request: Request, payload: AdminLoginRequest, db: Session = Depends(get_db)):
-    admin = db.query(AdminUser).filter(AdminUser.username == payload.username.strip()).first()
+    from app.core.middleware import _client_ip
+    from app.core.errors import too_many
+
+    ip = _client_ip(request)
+    if not check_rate(f"login:ip:{ip}", LOGIN_IP_LIMIT, LOGIN_IP_WINDOW):
+        raise too_many("尝试过于频繁，请 5 分钟后再试")
+
+    username = payload.username.strip()
+    tracker = get_failure_tracker()
+    if tracker.count(f"login:{username}", LOGIN_LOCK_WINDOW) >= LOGIN_FAIL_LIMIT:
+        raise unauthorized("失败次数过多，账号已临时锁定 15 分钟")
+
+    admin = db.query(AdminUser).filter(AdminUser.username == username).first()
     if admin is None or not verify_password(payload.password, admin.password_hash):
+        fails = tracker.record(f"login:{username}", LOGIN_LOCK_WINDOW)
+        if admin is not None:
+            _log(db, admin, "login_failed", "admin", admin.id, f"fail={fails} ip={ip}")
+            db.commit()
+        else:
+            logger.warning("login_failed unknown username=%s ip=%s", username, ip)
         raise unauthorized("用户名或密码错误")
+    tracker.clear(f"login:{username}")
     admin.last_login_at = utcnow()
     request.session["admin_id"] = admin.id
     db.commit()

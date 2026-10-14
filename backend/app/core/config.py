@@ -21,6 +21,23 @@ class Settings(BaseSettings):
     enable_scheduler: bool = True
     upload_dir: str = "./uploads"
 
+    # ---- 生产化加固（docs/09）----
+    environment: str = "dev"  # dev | prod（Sentry 标签）
+    # 图片存储：local=容器本地盘（仅开发）/ cos=腾讯云对象存储（生产必须，容器无状态）
+    storage_backend: str = "local"
+    cos_secret_id: str = ""
+    cos_secret_key: str = ""
+    cos_region: str = ""
+    cos_bucket: str = ""
+    cos_cdn_domain: str = ""  # 可选：CDN 加速域名（空则用 COS 默认域名）
+    # 可观测性：DSN 为空则不启用 Sentry（本地零影响）
+    sentry_dsn: str = ""
+    sentry_traces_sample_rate: float = 0.1
+    # 限流：pytest 关闭，生产开启
+    rate_limit_enabled: bool = True
+    # 协议版本（与小程序 agreement 页文案一致，变更即触发用户重新同意）
+    terms_version: str = "2026-10"
+
 
 @lru_cache
 def get_settings() -> Settings:

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db, get_verified_user
+from app.services.rate_limit import check_rate
 from app.core.errors import bad_request, conflict, forbidden, not_found
 from app.core.time import iso, utcnow
 from app.models import Conversation, Item, ItemWant, Notification, Transaction, User
@@ -27,6 +28,11 @@ def create_want(
     user: User = Depends(get_verified_user),
     db: Session = Depends(get_db),
 ):
+    if not check_rate(f"want:{user.id}", 10, 60):
+        from app.core.errors import too_many
+
+        raise too_many("操作过于频繁，请稍后再试")
+
     item = _get_item(db, item_id)
     if item.user_id == user.id:
         raise bad_request("不能对自己发布的物品表达意向")

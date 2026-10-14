@@ -5,6 +5,7 @@ os.environ["ENV"] = "dev"
 os.environ["DATABASE_URL"] = "sqlite:///./test_nswap.db"
 os.environ["WX_CALL_MODE"] = "mock"
 os.environ["ENABLE_SCHEDULER"] = "false"
+os.environ["RATE_LIMIT_ENABLED"] = "false"  # 限流默认关闭，test_rate_limit.py 单独开启
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
