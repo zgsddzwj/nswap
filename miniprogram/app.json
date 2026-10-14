@@ -9,6 +9,7 @@
     "pages/search/search",
     "pages/publish/edit/edit",
     "pages/verify/verify",
+    "pages/wall/wall",
     "pages/announcements/announcements",
     "pages/wants/wants",
     "pages/chat/chat",

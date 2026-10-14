@@ -36,6 +36,13 @@
     <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
   </view>
 
+  <!-- 邻里 FAQ 入口（仅本小区 Tab，docs/10 Phase 1） -->
+  <view wx:if="{{scope === 'community' && joined}}" class="home__notice" hover-class="home__banner--hover" bindtap="goWall">
+    <view class="home__notice-tag" style="background: var(--ns-brand); color: #fff;">FAQ</view>
+    <view class="ns-grow ns-ellipsis home__notice-title">邻里 FAQ · 常见问题与解答</view>
+    <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
+  </view>
+
   <!-- 邻里感谢（仅本小区 Tab，感谢帖已按小区隔离） -->
   <swiper wx:if="{{scope === 'community' && gratitudes.length}}" class="home__gratitudes" display-multiple-items="{{2}}" next-margin="0">
     <swiper-item wx:for="{{gratitudes}}" wx:key="id">

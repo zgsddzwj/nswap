@@ -156,6 +156,10 @@ Page({
     wx.navigateTo({ url: "/pages/verify/verify" });
   },
 
+  goWall() {
+    wx.navigateTo({ url: "/pages/wall/wall" });
+  },
+
   onEmptyAction() {
     if (this.data.verified) {
       wx.switchTab({ url: "/pages/publish/publish" });

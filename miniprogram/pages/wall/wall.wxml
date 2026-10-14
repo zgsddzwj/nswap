@@ -1,0 +1,58 @@
+<view class="ns-page wall">
+  <view class="wall__hero">
+    <view class="ns-h1">邻里 FAQ</view>
+    <view class="wall__hero-sub">物业整理的常见问题，点小红心收藏有用的答案</view>
+  </view>
+
+  <!-- 骨架 -->
+  <view wx:if="{{firstLoading}}">
+    <view class="ns-card wall__card" wx:for="{{[0,1,2]}}" wx:key="*this">
+      <view class="ns-skeleton" style="height: 30rpx; width: 55%;"></view>
+      <view class="ns-skeleton" style="height: 24rpx; width: 90%; margin-top: 16rpx;"></view>
+    </view>
+  </view>
+
+  <block wx:elif="{{!loadError}}">
+    <view wx:for="{{items}}" wx:key="id" class="ns-card wall__card">
+      <view class="wall__q-row">
+        <view wx:if="{{item.pinned}}" class="wall__pin">置顶</view>
+        <view class="wall__q-mark">Q</view>
+        <view class="ns-grow wall__title">{{item.title}}</view>
+      </view>
+      <view class="wall__a-row">
+        <view class="wall__a-mark">A</view>
+        <view class="ns-grow wall__content">{{item.content}}</view>
+      </view>
+      <view class="wall__footer">
+        <text class="ns-hint">{{item.created_at ? '' : ''}}</text>
+        <view
+          class="wall__like {{item.my_like ? 'wall__like--on' : ''}}"
+          hover-class="wall__like--hover"
+          data-id="{{item.id}}"
+          data-liked="{{item.my_like}}"
+          bindtap="onToggleLike"
+        >
+          <text>{{item.my_like ? '❤️' : '🤍'}} {{item.like_count}}</text>
+        </view>
+      </view>
+    </view>
+    <view wx:if="{{finished && items.length}}" class="ns-list-footer">没有更多了</view>
+  </block>
+
+  <empty-state
+    wx:if="{{!firstLoading && !loadError && !items.length}}"
+    icon="help-circle"
+    text="{{joined ? '物业还没有发布常见问题' : '加入小区后查看邻里 FAQ'}}"
+    sub="{{joined ? '物业整理的答疑会出现在这里' : ''}}"
+    actionText="{{joined ? '' : '去完成小区验证'}}"
+    bind:action="goVerify"
+  />
+
+  <empty-state
+    wx:if="{{loadError}}"
+    icon="error-circle"
+    text="加载失败"
+    actionText="重新加载"
+    bind:action="onRetry"
+  />
+</view>
