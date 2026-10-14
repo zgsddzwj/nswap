@@ -98,7 +98,9 @@ def delete_account(
     db.query(ItemWant).filter(
         ItemWant.user_id == user.id, ItemWant.status == "pending"
     ).update({"status": "rejected"}, synchronize_session=False)
-    # 3) 状态标记（openid 保留：防止重新注册复用；登录时被 403 拦截）
+    # 3) 状态标记 + 腾出 openid（改名留痕）：同微信再次使用将自动重新建档为
+    #    全新游客（注销=重置，行业惯例）；滥用由邀请码准入制兜底（docs/09 修订）
+    user.openid = f"deleted:{user.id}:{user.openid}"
     user.status = "deleted"
     user.deleted_at = utcnow()
     db.add(

@@ -50,11 +50,14 @@ def test_delete_account_anonymizes_and_keeps_trades(client, db, community, users
     assert alice.contact_wechat == "" and alice.contact_enabled is False
     # 物品已归档
     assert db.get(type(item), item.id).status == "archived"
-    # 注销后任何接口 403
-    assert client.get("/api/me", headers=hdr("dev_alice")).status_code == 403
-    assert publish(client, "dev_alice", title="x").status_code == 403
-    # 重复注销 → 403（deleted 状态被 deps 拦截）
-    assert client.post("/api/me/delete", json={"confirm": "注销"}, headers=hdr("dev_alice")).status_code == 403
+    # 旧记录 openid 已腾出：同微信再次使用 → 自动重新建档为全新游客（注销=重置）
+    me = client.get("/api/me", headers=hdr("dev_alice")).json()["data"]
+    assert me["user"]["verified"] is False and me["community"] is None  # 全新游客
+    assert me["user"]["id"] != alice.id
+    assert me["user"]["nickname"] != f"已注销用户{alice.id}"
+
+    # 已注销账号的确认参数再提交 → 403 纵深防御（直接以旧 openid 查库场景）
+    # 无法从 API 触达旧账号（openid 已改名），由数据库层保证
 
     # 对方视角：交易仍在，对手方昵称显示已注销
     trades = client.get("/api/trades?status=ongoing", headers=hdr("dev_bob")).json()["data"]["list"]
@@ -63,12 +66,18 @@ def test_delete_account_anonymizes_and_keeps_trades(client, db, community, users
     assert trades[0]["counterpart"]["building"] == "3栋"  # 同小区楼栋正常显示（隐藏规则按小区）
 
 
-def test_deleted_user_cannot_rejoin(client, db, community, users):
-    client.post("/api/me/delete", json={"confirm": "注销"}, headers=hdr("dev_carol"))
-    # 已注销账号无法通过邀请码重新加入
+def test_deleted_user_can_rejoin_as_new_guest(client, db, community, users):
+    """注销=重置（docs/09 修订）：同微信可凭新邀请码重新加入，成为全新账号。"""
     from app.models import Invite
 
     db.add(Invite(community_id=community.id, code="YQ-DEL00001", kind="normal", building="1栋"))
     db.commit()
+    client.post("/api/me/delete", json={"confirm": "注销"}, headers=hdr("dev_carol"))
     r = client.post("/api/community/join", json={"code": "YQ-DEL00001"}, headers=hdr("dev_carol"))
-    assert r.status_code == 403
+    assert r.status_code == 200
+    me = r.json()["data"]
+    assert me["user"]["verified"] is True and me["user"]["id"] != users["carol"].id
+    # 旧账号保持匿名化且不再可用（openid 已改名，数据层隔离）
+    old = users["carol"]
+    db.expire_all()
+    assert old.status == "deleted" and old.openid.startswith("deleted:")
