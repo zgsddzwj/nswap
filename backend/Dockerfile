@@ -17,10 +17,18 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ /app/
 COPY --from=web /web/dist /app/admin-web/dist
 
-# uploads 目录（云托管容器文件系统为临时存储，生产建议切换对象存储，见 docs/03）
+# uploads 目录（本地存储后端用；生产请配置 STORAGE_BACKEND=cos，见 docs/09 P0-1）
 RUN mkdir -p /app/uploads
 
+# 非 root 运行（docs/09 P1-12）
+RUN useradd --create-home --shell /usr/sbin/nologin appuser \
+    && chown -R appuser:appuser /app
+USER appuser
+
 EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 \
+    CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2).status == 200 else 1)"
 
 # 启动前执行数据库迁移
 CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]

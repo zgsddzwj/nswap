@@ -6,7 +6,7 @@ from app.core.errors import not_found
 from app.core.time import iso, utcnow
 from app.models import Item, ItemMessage, User
 from app.schemas import ItemMessageCreate
-from app.schemas.serialize import ok, user_summary
+from app.schemas.serialize import community_names, ok, user_summary
 from app.services.notify import push_notification
 from app.services.sec_check import check_text
 
@@ -37,6 +37,7 @@ def list_messages(
     next_cursor = rows[-1].id if len(rows) > limit else None
     rows = rows[:limit]
     users = {u.id: u for u in db.query(User).filter(User.id.in_([m.user_id for m in rows]))}
+    names = community_names(db, [u.community_id for u in users.values()])  # 循环外一次查询
     return ok(
         {
             "list": [
@@ -45,7 +46,8 @@ def list_messages(
                     "content": m.content,
                     "sec_status": m.sec_status,
                     "created_at": iso(m.created_at),
-                    "user": user_summary(users[m.user_id], db, user) if m.user_id in users else None,
+                    "user": user_summary(users[m.user_id], db, user, names)
+                    if m.user_id in users else None,
                 }
                 for m in reversed(rows)
             ],

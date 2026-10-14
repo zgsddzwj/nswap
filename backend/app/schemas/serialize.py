@@ -36,6 +36,17 @@ def _community_name(db: Session, community_id: int | None) -> str:
     return c.name if c else ""
 
 
+def community_names(db: Session, ids: list) -> dict[int, str]:
+    """批量取社区名（列表接口用，避免逐行查询的 N+1）。"""
+    wanted = {i for i in ids if i}
+    if not wanted:
+        return {}
+    return {
+        c.id: c.name
+        for c in db.query(Community).filter(Community.id.in_(wanted)).all()
+    }
+
+
 def _same_community(viewer: User | None, community_id: int | None) -> bool:
     if viewer is None or community_id is None:
         return False
@@ -61,13 +72,24 @@ def user_stats(u: User) -> dict:
     }
 
 
-def user_summary(u: User, db: Session | None = None, viewer: User | None = None) -> dict:
+def user_summary(
+    u: User,
+    db: Session | None = None,
+    viewer: User | None = None,
+    names: dict[int, str] | None = None,
+) -> dict:
+    if db is not None:
+        name = (names or {}).get(u.community_id) if u.community_id else None
+        if name is None:
+            name = _community_name(db, u.community_id)
+    else:
+        name = ""
     return {
         "id": u.id,
         "nickname": u.nickname,
         "avatar_url": u.avatar_url,
         "building": _building_for(viewer, u) if db is not None else u.building,
-        "community_name": _community_name(db, u.community_id) if db is not None else "",
+        "community_name": name,
         "verified": u.verified,
         "role": u.role,
         "stats": user_stats(u),
@@ -136,7 +158,16 @@ def _visible_images(db: Session, item_ids: list[int]) -> dict[int, list[str]]:
     return result
 
 
-def item_card(db: Session, item: Item, images: list[str] | None, viewer: User | None) -> dict:
+def item_card(
+    db: Session,
+    item: Item,
+    images: list[str] | None,
+    viewer: User | None,
+    names: dict[int, str] | None = None,
+) -> dict:
+    name = (names or {}).get(item.community_id) if item.community_id else None
+    if name is None:
+        name = _community_name(db, item.community_id)
     return {
         "id": item.id,
         "type": item.type,
@@ -146,7 +177,7 @@ def item_card(db: Session, item: Item, images: list[str] | None, viewer: User | 
         "category": item.category,
         "condition": item.condition,
         "building": item.building if _same_community(viewer, item.community_id) else "",
-        "community_name": _community_name(db, item.community_id),
+        "community_name": name,
         "status": item.status,
         "cover": images[0] if images else None,
         "want_count": item.want_count,
@@ -159,7 +190,8 @@ def item_card(db: Session, item: Item, images: list[str] | None, viewer: User | 
 
 def item_cards(db: Session, items: list[Item], viewer: User | None) -> list[dict]:
     images_map = _visible_images(db, [i.id for i in items])
-    return [item_card(db, i, images_map.get(i.id), viewer) for i in items]
+    names = community_names(db, [i.community_id for i in items])  # 一次查询，消除 N+1
+    return [item_card(db, i, images_map.get(i.id), viewer, names) for i in items]
 
 
 def item_detail(db: Session, item: Item, viewer: User | None) -> dict:

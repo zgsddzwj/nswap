@@ -7,7 +7,7 @@ from app.core.errors import bad_request, conflict, forbidden, not_found
 from app.core.time import iso, utcnow
 from app.models import Conversation, Item, ItemWant, Notification, Transaction, User
 from app.schemas import WantAction, WantCreate
-from app.schemas.serialize import ok, user_summary
+from app.schemas.serialize import community_names, ok, user_summary
 from app.services.notify import push_notification, send_subscribe
 from app.services.sec_check import check_text
 
@@ -111,6 +111,7 @@ def list_wants(
         .all()
     )
     users = {u.id: u for u in db.query(User).filter(User.id.in_([w.user_id for w in wants]))}
+    names = community_names(db, [u.community_id for u in users.values()])  # 循环外一次查询
     return ok(
         {
             "list": [
@@ -121,7 +122,8 @@ def list_wants(
                     "swap_offer": w.swap_offer,
                     "status": w.status,
                     "created_at": iso(w.created_at),
-                    "user": user_summary(users[w.user_id], db, user) if w.user_id in users else None,
+                    "user": user_summary(users[w.user_id], db, user, names)
+                    if w.user_id in users else None,
                 }
                 for w in wants
             ]

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_current_user, get_db
 from app.core.errors import not_found
 from app.models import Item, User
-from app.schemas.serialize import item_cards, ok, user_summary
+from app.schemas.serialize import community_names, item_cards, ok, user_summary
 
 router = APIRouter(tags=["users"])
 
@@ -30,7 +30,7 @@ def get_profile(
     )
     return ok(
         {
-            "user": user_summary(target, db, user),
+            "user": user_summary(target, db, user, community_names(db, [target.community_id])),
             "items": item_cards(db, active_items, user),
         }
     )
