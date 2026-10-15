@@ -7,16 +7,19 @@ venv/
 .pytest_cache/
 .coverage
 
+# 环境变量（.env.example 除外）
+.env
+.env.*
+!.env.example
+
 # 本地数据库与上传文件
 *.db
 *.sqlite3
 backend/uploads/
 uploads/
 
-# 环境变量
-.env
-.env.local
-.env.prod
+# AI 代理工作目录（会话计划等内部文件）
+.zcode/
 
 # Node / 小程序
 node_modules/
