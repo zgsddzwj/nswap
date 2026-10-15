@@ -34,9 +34,10 @@ def upgrade() -> None:
     op.add_column('admin_users', sa.Column(
         'community_id', sa.Integer(), nullable=True,
         comment='NULL=平台超管；非 NULL=物业管理员（仅本小区）'))
-    op.create_foreign_key(
-        'fk_admin_users_community_id', 'admin_users', 'communities',
-        ['community_id'], ['id'])
+    # batch 模式：SQLite 不支持 ALTER ADD CONSTRAINT，MySQL 下等价（docs/12 P0-1）
+    with op.batch_alter_table('admin_users') as batch_op:
+        batch_op.create_foreign_key(
+            'fk_admin_users_community_id', 'communities', ['community_id'], ['id'])
     op.create_index('ix_admin_users_community_id', 'admin_users', ['community_id'])
 
     op.create_table(
@@ -60,8 +61,9 @@ def downgrade() -> None:
     op.drop_index('ix_announcements_community_id', table_name='announcements')
     op.drop_table('announcements')
     op.drop_index('ix_admin_users_community_id', table_name='admin_users')
-    op.drop_constraint('fk_admin_users_community_id', 'admin_users', type_='foreignkey')
-    op.drop_column('admin_users', 'community_id')
+    with op.batch_alter_table('admin_users') as batch_op:
+        batch_op.drop_constraint('fk_admin_users_community_id', type_='foreignkey')
+        batch_op.drop_column('community_id')
     op.drop_index('ix_communities_city', table_name='communities')
     op.drop_column('communities', 'status')
     op.drop_column('communities', 'district')

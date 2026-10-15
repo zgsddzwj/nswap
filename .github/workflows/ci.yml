@@ -6,6 +6,42 @@ on:
   pull_request:
 
 jobs:
+  migrations:
+    # 空库全链迁移守卫（docs/12 P0-1 防回归）：测试走 create_all 不经过 alembic，
+    # 迁移链断裂只有这里能拦住
+    name: 数据库迁移链（空库升级）
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: nswap
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -proot"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: 安装依赖
+        run: pip install -r backend/requirements.txt
+      - name: MySQL 空库全链升级（生产路径，拦重复索引/方言不兼容）
+        working-directory: backend
+        env:
+          DATABASE_URL: mysql+pymysql://root:root@127.0.0.1:3306/nswap?charset=utf8mb4
+        run: alembic upgrade head
+      - name: SQLite 空库全链升级（开发路径，拦 ALTER 约束类不兼容）
+        working-directory: backend
+        env:
+          DATABASE_URL: sqlite:///./mig_ci.db
+        run: alembic upgrade head
+
   backend:
     name: 后端测试
     runs-on: ubuntu-latest

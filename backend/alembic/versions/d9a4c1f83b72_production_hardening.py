@@ -31,9 +31,8 @@ def upgrade() -> None:
         'pinned', sa.Boolean(), nullable=False, server_default=sa.false()))
 
     # ---- P1-8 性能复合索引（热查询路径）----
-    # feed：WHERE community_id=? AND status IN (...) ORDER BY last_active_at DESC
-    op.create_index(
-        'ix_items_feed', 'items', ['community_id', 'status', 'last_active_at'])
+    # feed 复合索引 ix_items_feed(community_id,status,last_active_at) 已在
+    # initial_schema 创建，此处不得重复创建（重复会致 MySQL 1061，见 docs/12 P0-1）
     # 我的发布：WHERE user_id=? AND status=?
     op.create_index('ix_items_user_status', 'items', ['user_id', 'status'])
     # 未读通知：WHERE user_id=? AND read=false ORDER BY id
@@ -52,7 +51,6 @@ def downgrade() -> None:
     op.drop_index('ix_dm_messages_conv', table_name='dm_messages')
     op.drop_index('ix_notifications_unread', table_name='notifications')
     op.drop_index('ix_items_user_status', table_name='items')
-    op.drop_index('ix_items_feed', table_name='items')
     op.drop_column('announcements', 'pinned')
     op.drop_column('users', 'deleted_at')
     op.drop_column('users', 'agreed_terms_version')
