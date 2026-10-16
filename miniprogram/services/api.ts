@@ -1,11 +1,13 @@
 /**
- * 双模式请求层。
+ * 请求层（三模式，docs/13 路线 C）。
  * - 本地开发：wx.request 直连本地后端，请求头 X-DEV-OPENID 模拟身份
  * - 云托管生产：wx.cloud.callContainer，微信自动注入 X-WX-OPENID
+ * - 自建服务器：wx.request 直连 HTTPS 域名，wx.login 换 token + Authorization 头；
+ *   401（token 过期）自动静默重登并重放一次，用户无感
  *
  * 统一处理后端响应信封 {code, message, data} 与 422 校验错误的兜底。
  */
-import { CONFIG, LOCAL_DEV } from "../config/index";
+import { CONFIG, DEPLOY_MODE } from "../config/index";
 
 export type Method = "GET" | "POST" | "PUT" | "DELETE";
 // 注意：wx.request 不支持 PATCH（微信平台限制），后端为 arrange 提供了 PUT 别名
@@ -31,6 +33,65 @@ export function devOpenid(): string {
 
 export function setDevOpenid(openid: string) {
   wx.setStorageSync("dev_openid", openid);
+}
+
+// ---------- 登录 token（自建服务器模式） ----------
+
+const TOKEN_KEY = "auth_token";
+
+export function getAuthToken(): string {
+  const v = wx.getStorageSync(TOKEN_KEY);
+  return typeof v === "string" ? v : "";
+}
+
+export function setAuthToken(token: string) {
+  wx.setStorageSync(TOKEN_KEY, token);
+}
+
+export function clearAuthToken() {
+  wx.removeStorageSync(TOKEN_KEY);
+}
+
+let loginInFlight: Promise<any> | null = null;
+
+/**
+ * 自建模式静默登录：wx.login → code → /api/auth/login 换 token（并发去重）。
+ * code 一次性且 5 分钟有效，失败后需重新 wx.login（本函数每次调用都会重新取 code）。
+ */
+export function silentLogin(): Promise<any> {
+  if (loginInFlight) return loginInFlight;
+  const p = new Promise<any>((resolve, reject) => {
+    wx.login({
+      success: (res) => {
+        if (!res.code) {
+          reject(new ApiError("微信登录失败，请重试", 0, 0));
+          return;
+        }
+        // allowRelogin=false：登录请求本身失败不得再触发重登（防循环）
+        requestOnce<any>("POST", "/api/auth/login", { code: res.code }, false)
+          .then((data) => {
+            if (data && data.token) setAuthToken(data.token);
+            resolve(data);
+          })
+          .catch((e) => {
+            clearAuthToken();
+            reject(e);
+          });
+      },
+      fail: () => reject(new ApiError("微信登录失败，请重试", 0, 0)),
+    });
+  });
+  loginInFlight = p.then(
+    (v) => {
+      loginInFlight = null;
+      return v;
+    },
+    (e) => {
+      loginInFlight = null;
+      throw e;
+    }
+  );
+  return loginInFlight;
 }
 
 function withQuery(path: string, params?: Record<string, any>): string {
@@ -65,14 +126,35 @@ export function request<T = any>(
   path: string,
   data?: Record<string, any>
 ): Promise<T> {
+  return requestOnce<T>(method, path, data, true);
+}
+
+function requestOnce<T>(
+  method: Method,
+  path: string,
+  data: Record<string, any> | undefined,
+  allowRelogin: boolean
+): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    if (LOCAL_DEV) {
+    const onBody = (status: number, body: any) => {
+      if (DEPLOY_MODE === "self" && status === 401 && allowRelogin) {
+        // token 过期：静默重登（wx.login 无感）后重放原请求一次
+        silentLogin()
+          .then(() => requestOnce<T>(method, path, data, false))
+          .then(resolve)
+          .catch(reject);
+        return;
+      }
+      handleBody(status, body, resolve, reject);
+    };
+
+    if (DEPLOY_MODE === "local") {
       wx.request({
         url: CONFIG.DEV_BASE_URL + withQuery(path, method === "GET" ? data : undefined),
         method,
         data: method === "GET" ? undefined : data,
         header: { "content-type": "application/json", "X-DEV-OPENID": devOpenid() },
-        success: (res) => handleBody(res.statusCode, res.data, resolve, reject),
+        success: (res) => onBody(res.statusCode, res.data),
         fail: () =>
           reject(
             new ApiError(
@@ -81,6 +163,20 @@ export function request<T = any>(
               0
             )
           ),
+      });
+    } else if (DEPLOY_MODE === "self") {
+      const token = getAuthToken();
+      const header: Record<string, string> = { "content-type": "application/json" };
+      if (token) header.Authorization = `Bearer ${token}`;
+      wx.request({
+        url:
+          CONFIG.SELF_HOSTED_BASE_URL.replace(/\/$/, "") +
+          withQuery(path, method === "GET" ? data : undefined),
+        method,
+        data: method === "GET" ? undefined : data,
+        header,
+        success: (res) => onBody(res.statusCode, res.data),
+        fail: () => reject(new ApiError("网络请求失败，请检查网络后重试", 0, 0)),
       });
     } else {
       wx.cloud.callContainer({
@@ -92,7 +188,7 @@ export function request<T = any>(
           "content-type": "application/json",
         },
         data: method === "GET" ? undefined : data,
-        success: (res: any) => handleBody(res.statusCode, res.data, resolve, reject),
+        success: (res: any) => onBody(res.statusCode, res.data),
         fail: () => reject(new ApiError("网络请求失败，请稍后重试", 0, 0)),
       });
     }

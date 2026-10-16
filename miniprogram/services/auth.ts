@@ -1,5 +1,6 @@
 /** 身份与会话：启动静默登录、me 缓存与订阅、未读角标 */
-import { get, post } from "./api";
+import { DEPLOY_MODE } from "../config/index";
+import { get, getAuthToken, post, silentLogin } from "./api";
 
 export interface UserStats {
   sell_done: number;
@@ -57,6 +58,18 @@ export function onMeChange(fn: (me: Me | null) => void): () => void {
 /** 启动静默登录：后端按 openid 自动建档（首次生成「邻居xxxx」昵称） */
 export async function ensureLogin(): Promise<Me | null> {
   try {
+    if (DEPLOY_MODE === "self") {
+      // 自建服务器：wx.login 换 token（docs/13 路线 C）
+      if (!getAuthToken()) {
+        me = (await silentLogin()) as Me;
+        emit();
+        return me;
+      }
+      // 已有 token：过期由请求层自动静默重登并重放（401 兜底）
+      me = await get<Me>("/api/me");
+      emit();
+      return me;
+    }
     me = await post<Me>("/api/auth/login");
     emit();
     return me;

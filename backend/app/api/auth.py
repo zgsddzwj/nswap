@@ -1,15 +1,17 @@
 import re
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.deps import get_current_user, get_db, touch_user
-from app.core.errors import bad_request, conflict
+from app.core.deps import get_current_user, get_db, get_or_create_user, resolve_openid, touch_user
+from app.core.errors import bad_request, conflict, unauthorized
+from app.core.security import create_auth_token
 from app.core.time import utcnow
 from app.models import AdminLog, User
-from app.schemas import ContactSettings, ProfileUpdate
+from app.schemas import ContactSettings, LoginRequest, ProfileUpdate
 from app.schemas.serialize import me_payload, ok
+from app.services.wechat import client as wechat_client
 
 router = APIRouter(tags=["auth"])
 
@@ -18,10 +20,32 @@ PHONE_RE = re.compile(r"^1\d{10}$")
 
 
 @router.post("/auth/login")
-def login(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    """静默登录：openid 已由依赖自动建档，这里刷新活跃时间并返回档案。"""
+def login(
+    payload: LoginRequest | None = None,
+    db: Session = Depends(get_db),
+    authorization: str | None = Header(default=None, alias="Authorization"),
+    x_wx_openid: str | None = Header(default=None, alias="X-WX-OPENID"),
+    x_dev_openid: str | None = Header(default=None, alias="X-DEV-OPENID"),
+):
+    """登录（三模式统一入口，docs/13 路线 C）：
+
+    - 带 code（自建服务器）：wx.login 临时 code → code2session 换真实 openid → 签发 token
+    - 不带 code（云托管/本地开发）：身份由请求头注入，行为与原来一致
+
+    两种路径都返回 token（云托管模式前端可忽略）。
+    """
+    code = (payload.code or "").strip() if payload and payload.code else ""
+    if code:
+        session = wechat_client.code2session(code)
+        openid = str((session or {}).get("openid") or "")
+        if not openid:
+            # code 一次性且 5 分钟有效：前端收到此错误应重新 wx.login 再试
+            raise unauthorized("微信登录失败，请重试")
+    else:
+        openid = resolve_openid(authorization, x_wx_openid, x_dev_openid)
+    user = get_or_create_user(db, openid)
     touch_user(user, db)
-    return ok(me_payload(db, user))
+    return ok({"token": create_auth_token(openid), **me_payload(db, user)})
 
 
 @router.get("/me")

@@ -40,6 +40,12 @@ class Settings(BaseSettings):
     # 邻里墙（住户发帖）Phase 2 开关：社交类目过审后开启（docs/10 §3）
     neighbor_wall_enabled: bool = False
 
+    # ---- 自建服务器登录（docs/13 路线 C）----
+    # 登录 token 签名密钥：留空则复用 admin_session_secret（两者都须强随机）
+    auth_token_secret: str = ""
+    # token 有效期（默认 30 天）；过期后小程序 wx.login 静默重登，用户无感
+    auth_token_max_age_seconds: int = 30 * 24 * 3600
+
 
 @lru_cache
 def get_settings() -> Settings:

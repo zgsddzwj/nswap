@@ -26,8 +26,24 @@ export const LOCAL_DEV = true;
 /** 电脑局域网 IP（`ipconfig getifaddr en0`），换网络后同步更新 */
 const LAN_IP = "192.168.0.230";
 
+/**
+ * 自建服务器地址（docs/13 路线 C）：填 HTTPS 域名即为自建模式。
+ * 仅在 LOCAL_DEV=false 时生效；留空则走微信云托管（callContainer）。
+ * 例：export const SELF_HOSTED_BASE_URL = "https://api.your-domain.com";
+ */
+export const SELF_HOSTED_BASE_URL = "";
+
+/** 部署模式：local=本地联调（X-DEV-OPENID）/ cloud=微信云托管 / self=自建服务器（token） */
+export type DeployMode = "local" | "cloud" | "self";
+export const DEPLOY_MODE: DeployMode = LOCAL_DEV
+  ? "local"
+  : SELF_HOSTED_BASE_URL
+    ? "self"
+    : "cloud";
+
 export const CONFIG = {
   LOCAL_DEV,
+  DEPLOY_MODE,
 
   /**
    * 本地开发后端地址：
@@ -35,6 +51,9 @@ export const CONFIG = {
    * - 真机调试使用局域网 IP（当前已配置）
    */
   DEV_BASE_URL: `http://${LAN_IP}:8001`,
+
+  /** 自建服务器地址（DEPLOY_MODE=self 时使用） */
+  SELF_HOSTED_BASE_URL,
 
   /** 云托管环境 ID（微信云托管控制台「环境」页） */
   CLOUD_ENV: "",
@@ -57,10 +76,16 @@ export const CONFIG = {
   } as Record<"want" | "accepted" | "confirm" | "review", string>,
 };
 
+/** 当前部署模式下的后端基础地址（管理后台链接用） */
+const BACKEND_BASE_URL =
+  DEPLOY_MODE === "local"
+    ? CONFIG.DEV_BASE_URL
+    : DEPLOY_MODE === "self"
+      ? SELF_HOSTED_BASE_URL
+      : CONFIG.CLOUD_PUBLIC_BASE_URL;
+
 /** 管理后台地址（「我的」页复制链接用） */
-export const ADMIN_URL = LOCAL_DEV
-  ? `${CONFIG.DEV_BASE_URL}/admin`
-  : `${CONFIG.CLOUD_PUBLIC_BASE_URL.replace(/\/$/, "")}/admin`;
+export const ADMIN_URL = `${BACKEND_BASE_URL.replace(/\/$/, "")}/admin`;
 
 /** 协议版本（与后端 TERMS_VERSION 一致；变更后小程序会要求用户重新同意） */
 export const TERMS_VERSION = "2026-10";

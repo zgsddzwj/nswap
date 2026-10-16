@@ -3,6 +3,12 @@ from pydantic import BaseModel, Field
 
 # ---------- auth ----------
 
+class LoginRequest(BaseModel):
+    """登录请求：带 code=自建服务器模式（wx.login 换 token）；不带=请求头注入身份。"""
+
+    code: str | None = Field(default=None, max_length=128)
+
+
 class ProfileUpdate(BaseModel):
     nickname: str | None = Field(default=None, max_length=30)
     avatar_url: str | None = Field(default=None, max_length=500)

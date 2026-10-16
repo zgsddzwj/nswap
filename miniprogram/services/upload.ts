@@ -1,11 +1,12 @@
 /**
  * 图片上传：压缩 → 上传 → 返回可入库的完整 URL。
  * - 本地开发：wx.uploadFile multipart 直连本地后端（X-DEV-OPENID 鉴权）
+ * - 自建服务器：wx.uploadFile multipart 直连 HTTPS 域名（Authorization: Bearer token）
  * - 云托管：callContainer 的 JSON base64 通道（openid 由微信注入；
  *   wx.uploadFile 直连公网域名无法注入身份，故走 /api/uploads/base64）
  */
-import { CONFIG, LOCAL_DEV } from "../config/index";
-import { devOpenid, post } from "./api";
+import { CONFIG, DEPLOY_MODE } from "../config/index";
+import { devOpenid, getAuthToken, post } from "./api";
 
 const ALLOWED_EXT = [".jpg", ".jpeg", ".png", ".webp"];
 
@@ -25,13 +26,17 @@ async function compress(src: string): Promise<string> {
   return src;
 }
 
-function multipartUpload(filePath: string): Promise<string> {
+function multipartUpload(
+  url: string,
+  filePath: string,
+  header: Record<string, string>
+): Promise<string> {
   return new Promise((resolve, reject) => {
     wx.uploadFile({
-      url: CONFIG.DEV_BASE_URL + "/api/uploads",
+      url,
       filePath,
       name: "file",
-      header: { "X-DEV-OPENID": devOpenid() },
+      header,
       success: (res) => {
         try {
           const body = JSON.parse(res.data);
@@ -64,8 +69,20 @@ async function _uploadImageOnce(tempFilePath: string): Promise<string> {
   if (ALLOWED_EXT.indexOf(extOf(src)) === -1) {
     throw new Error("仅支持 jpg/png/webp 图片");
   }
-  if (LOCAL_DEV) {
-    return multipartUpload(src);
+  if (DEPLOY_MODE === "local") {
+    return multipartUpload(CONFIG.DEV_BASE_URL + "/api/uploads", src, {
+      "X-DEV-OPENID": devOpenid(),
+    });
+  }
+  if (DEPLOY_MODE === "self") {
+    const token = getAuthToken();
+    const header: Record<string, string> = {};
+    if (token) header.Authorization = `Bearer ${token}`;
+    return multipartUpload(
+      CONFIG.SELF_HOSTED_BASE_URL.replace(/\/$/, "") + "/api/uploads",
+      src,
+      header
+    );
   }
   const fs = wx.getFileSystemManager();
   const content = fs.readFileSync(src, "base64");

@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.errors import forbidden, unauthorized
+from app.core.security import read_auth_token
 from app.core.time import utcnow
 from app.db import SessionLocal
 from app.models import Item, User
@@ -30,24 +31,52 @@ def _extract_openid(x_wx_openid: str | None, x_dev_openid: str | None) -> str | 
     return None
 
 
-def get_current_user(
-    request: Request,
-    db: Session = Depends(get_db),
-    x_wx_openid: str | None = Header(default=None, alias="X-WX-OPENID"),
-    x_dev_openid: str | None = Header(default=None, alias="X-DEV-OPENID"),
-) -> User:
+def resolve_openid(
+    authorization: str | None,
+    x_wx_openid: str | None,
+    x_dev_openid: str | None,
+) -> str:
+    """身份解析统一入口（三模式）。
+
+    优先级：Bearer token（自建服务器，docs/13 路线 C）> X-WX-OPENID（云托管注入）
+    > dev 假身份（仅 ENV=dev）。
+    Bearer 校验失败立即 401、不降级到其他头——前端据此静默重登并重放请求。
+    """
+    if authorization:
+        scheme, _, token = authorization.partition(" ")
+        if scheme.lower() == "bearer":
+            openid = read_auth_token(token.strip()) if token.strip() else None
+            if not openid:
+                raise unauthorized("登录已过期，请重新登录")
+            return openid
     openid = _extract_openid(x_wx_openid, x_dev_openid)
     if not openid:
         raise unauthorized()
+    return openid
+
+
+def get_or_create_user(db: Session, openid: str) -> User:
+    """按 openid 查/建档：首次访问自动生成游客档案（未验证）。"""
     user = db.query(User).filter(User.openid == openid).first()
     if user is not None and (user.status == "deleted" or user.deleted_at is not None):
         raise forbidden("账号已注销")
     if user is None:
-        # 静默登录：首次访问自动建档为游客（未验证）
         user = User(openid=openid, nickname=f"邻居{secrets.token_hex(2)}")
         db.add(user)
         db.commit()
         db.refresh(user)
+    return user
+
+
+def get_current_user(
+    request: Request,
+    db: Session = Depends(get_db),
+    authorization: str | None = Header(default=None, alias="Authorization"),
+    x_wx_openid: str | None = Header(default=None, alias="X-WX-OPENID"),
+    x_dev_openid: str | None = Header(default=None, alias="X-DEV-OPENID"),
+) -> User:
+    openid = resolve_openid(authorization, x_wx_openid, x_dev_openid)
+    user = get_or_create_user(db, openid)
     request.state.user_id = user.id
     return user
 
