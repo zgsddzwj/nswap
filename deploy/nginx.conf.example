@@ -1,0 +1,52 @@
+# nswap 自建服务器 Nginx 示例（docs/13 路线 C）
+#
+# 用法：
+#   1. 复制到 /etc/nginx/conf.d/nswap.conf，把 your-domain.com 全部替换为你的备案域名
+#   2. 证书二选一：
+#      a) certbot --nginx -d your-domain.com（推荐：自动续期，签发前先注释掉 80 端口那段的 301）
+#      b) 华为云免费 SSL 证书 → 下载 Nginx 版 → 填下面 ssl_certificate 路径
+#   3. nginx -t && nginx -s reload
+#
+# 前提：域名已 ICP 备案并解析到本机；后端监听 127.0.0.1:8000（docker compose 或 uvicorn）
+
+server {
+    listen 80;
+    server_name your-domain.com;
+    # certbot 首次签发时先注释下面这行，签发后恢复
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name your-domain.com;
+
+    ssl_certificate     /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    # 图片上传（multipart / base64 通道）：放宽请求体
+    client_max_body_size 10m;
+
+    # 基础安全响应头（管理后台浏览器侧生效；小程序无感）
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options DENY always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
+
+    gzip on;
+    gzip_types application/json application/javascript text/css text/plain image/svg+xml;
+    gzip_min_length 1k;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        # 关键：覆盖而非追加 XFF（$remote_addr），客户端伪造的 XFF 一律丢弃。
+        # 后端限流按 XFF 首段取客户端 IP（docs/12 P1-3 的后端修复仍在待办），
+        # nginx 层覆盖后，自建部署下该伪造面已被封死。
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+    }
+}
