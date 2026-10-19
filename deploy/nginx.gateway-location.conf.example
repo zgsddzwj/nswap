@@ -1,0 +1,39 @@
+# nswap Nginx：并入「多项目统一网关」的子路径隔离片段（推荐用于多项目同机）
+#
+# 场景：宿主机已有 nginx 网关（listen 80 default_server / server_name _，
+#       各项目容器只绑 127.0.0.1，按子路径分发）。本片段并入既有 server 块即可。
+#
+# 配套（缺一不可）：
+#   1) 管理后台按前缀构建：docker-compose.prod.yml 里 ADMIN_BASE=/nswap/admin
+#      （Dockerfile web 阶段的构建参数，决定资源路径 /nswap/admin/assets/* 与路由 basename）
+#   2) PUBLIC_BASE_URL=https://域名/nswap （图片外链带前缀）
+#   3) 小程序 config/index.ts：SELF_HOSTED_BASE_URL="https://域名/nswap"
+#      （api 层按 基址+路径 拼接；ADMIN_URL 自动为 https://域名/nswap/admin）
+#   4) 微信消息推送回调：https://域名/nswap/api/wechat/callback
+#
+# 效果：
+#   /nswap            -> 301 /nswap/admin/
+#   /nswap/admin/**   -> 管理后台（rewrite 去掉前缀后转发容器 /admin/**）
+#   /nswap/api/**     -> 后端 API
+#   /nswap/uploads/** -> 图片
+#   其余项目（/adward/、/shouliang/ 等）互不影响
+#
+    # nswap：邻里闲置交换小程序（前端 + API + 管理后台同容器，8082）
+    location = /nswap {
+        return 301 /nswap/admin/;
+    }
+    location = /nswap/ {
+        return 301 /nswap/admin/;
+    }
+    location /nswap/ {
+        rewrite ^/nswap(/.*)$ $1 break;
+        proxy_pass http://127.0.0.1:8082;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        # 覆盖 XFF（丢弃客户端伪造值，防绕过限流；docs/13 C-4）
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # 图片上传（multipart/base64）：网关默认 1m 不够
+        client_max_body_size 10m;
+        proxy_read_timeout 60s;
+    }

@@ -33,6 +33,9 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+      args:
+        # 子路径隔离部署（nginx 网关下）：管理后台资源与路由前缀
+        ADMIN_BASE: /nswap/admin
     container_name: nswap-backend
     restart: unless-stopped
     env_file: .env

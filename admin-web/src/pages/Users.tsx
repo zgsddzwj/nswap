@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { api, type Page } from "@/lib/api";
+import { api, apiUrl, type Page } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { Badge, Card, CardHeader, Empty, PageHeader } from "@/components/ui/Card";
 import { Modal } from "@/components/ui/Modal";
@@ -103,7 +103,7 @@ export function Users() {
     <div>
       <PageHeader title="用户管理">
         <a
-          href="/api/admin/users/export"
+          href={apiUrl("/api/admin/users/export")}
           className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
         >
           导出 CSV

@@ -1,10 +1,13 @@
 # ---- 阶段 1：管理后台前端构建（docs/08 §7） ----
 FROM node:20-alpine AS web
 WORKDIR /web
+# 管理后台部署前缀：默认 /admin（FastAPI 同源挂载）；
+# 子路径隔离部署（nginx 网关下）传 --build-arg ADMIN_BASE=/nswap/admin
+ARG ADMIN_BASE=/admin
 COPY admin-web/package.json admin-web/package-lock.json ./
 RUN npm install --registry=https://registry.npmmirror.com --no-audit --no-fund
 COPY admin-web/ ./
-RUN npm run build
+RUN ADMIN_BASE=${ADMIN_BASE} npm run build
 
 # ---- 阶段 2：后端 ----
 FROM python:3.11-slim

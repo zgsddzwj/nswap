@@ -30,6 +30,8 @@ const LAN_IP = "192.168.0.230";
  * 自建服务器地址（docs/13 路线 C）：填 HTTPS 域名即为自建模式。
  * 仅在 LOCAL_DEV=false 时生效；留空则走微信云托管（callContainer）。
  * 例：export const SELF_HOSTED_BASE_URL = "https://api.your-domain.com";
+ * 子路径隔离部署（nginx 网关多项目同机）时带上前缀，如 "https://域名/nswap"，
+ * 管理后台入口会自动推导为 https://域名/nswap/admin。
  */
 export const SELF_HOSTED_BASE_URL = "";
 

@@ -1,6 +1,13 @@
 /** 管理后台 API 封装：信封拆解、401 跳登录、错误 toast */
 import { toast } from "sonner";
 
+/** 部署前缀（构建期注入，vite.config.ts define）：如 /admin 或 /nswap/admin */
+export const ADMIN_BASE = __ADMIN_BASE__;
+/** API 前缀：去掉末尾 /admin 后的站点前缀（子路径隔离时如 /nswap；默认空串） */
+export const API_PREFIX = ADMIN_BASE.replace(/\/admin$/, "");
+/** 拼接可直接访问的后端 URL（导出下载等不经 api() 的场景） */
+export const apiUrl = (path: string) => `${API_PREFIX}${path}`;
+
 export class ApiError extends Error {
   status: number;
   constructor(message: string, status: number) {
@@ -22,7 +29,7 @@ export async function api<T = unknown>(
 ): Promise<T> {
   let res: Response;
   try {
-    res = await fetch(path, {
+    res = await fetch(apiUrl(path), {
       method,
       credentials: "include",
       headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
@@ -40,7 +47,7 @@ export async function api<T = unknown>(
   if (res.status === 401) {
     // 会话失效：跳登录页（登录页自身除外）
     if (!location.pathname.endsWith("/login")) {
-      location.href = "/admin/login";
+      location.href = `${ADMIN_BASE}/login`;
     }
     throw new ApiError(payload?.message || "请先登录", 401);
   }

@@ -26,7 +26,7 @@ const qc = new QueryClient({
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={qc}>
-      <BrowserRouter basename="/admin">
+      <BrowserRouter basename={__ADMIN_BASE__}>
         <Routes>
           <Route path="login" element={<Login />} />
           <Route element={<AdminLayout />}>

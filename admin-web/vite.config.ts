@@ -3,9 +3,15 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
-// base=/admin/：生产由 FastAPI 挂载到 /admin 前缀下
+// 部署前缀（构建期可覆盖）：
+//   默认 /admin —— FastAPI 同源挂载
+//   子路径隔离部署（如 nginx 网关下 /nswap/admin）：
+//     ADMIN_BASE=/nswap/admin npm run build
+const adminBase = (process.env.ADMIN_BASE || "/admin").replace(/\/$/, "");
+
 export default defineConfig({
-  base: "/admin/",
+  base: `${adminBase}/`,
+  define: { __ADMIN_BASE__: JSON.stringify(adminBase) },
   plugins: [react(), tailwindcss()],
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   server: {

@@ -15,9 +15,10 @@ import {
   Users,
 } from "lucide-react";
 import { useAdmin } from "@/lib/auth";
-import { api } from "@/lib/api";
+import { api, ADMIN_BASE } from "@/lib/api";
 
-// 注意：BrowserRouter basename="/admin"，所有 to 都是 basename 内的相对路径（docs/08 修订）
+// 注意：BrowserRouter basename 为部署前缀（__ADMIN_BASE__，如 /admin 或 /nswap/admin），
+// 所有 to 都是 basename 内的相对路径（docs/08 修订）
 const NAV = [
   { to: "/", label: "看板", icon: BarChart3, end: true },
   { to: "/invites", label: "邀请码管理", icon: KeyRound },
@@ -53,7 +54,7 @@ export function AdminLayout() {
       await api("POST", "/api/admin/auth/logout");
     } finally {
       qc.clear();
-      location.href = "/admin/login";
+      location.href = `${ADMIN_BASE}/login`;
     }
   }
 
