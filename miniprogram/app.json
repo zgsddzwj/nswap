@@ -23,7 +23,7 @@
   "window": {
     "navigationBarBackgroundColor": "@navBg",
     "navigationBarTextStyle": "@navTxt",
-    "navigationBarTitleText": "邻里交换",
+    "navigationBarTitleText": "邻里汇小区服务",
     "backgroundColor": "@bg",
     "backgroundTextStyle": "@bgTxt"
   },

@@ -1,4 +1,4 @@
-# nswap · 邻里闲置交换小程序
+# 邻里汇小区服务 · 社区闲置交换小程序
 
 [![CI](https://github.com/zgsddzwj/nswap/actions/workflows/ci.yml/badge.svg)](https://github.com/zgsddzwj/nswap/actions/workflows/ci.yml)
 

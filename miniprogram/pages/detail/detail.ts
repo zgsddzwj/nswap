@@ -462,7 +462,7 @@ Page({  data: {
   onShareAppMessage() {
     const d = this.data.d;
     return {
-      title: d ? d.title : "邻里闲置交换",
+      title: d ? d.title : "邻里汇小区服务",
       path: d ? `/pages/detail/detail?id=${d.id}` : "/pages/home/home",
     };
   },

@@ -36,8 +36,8 @@ export function Login() {
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-brand text-lg font-bold text-white">
             n
           </div>
-          <h1 className="text-lg font-bold text-slate-800">nswap 管理后台</h1>
-          <p className="mt-1 text-sm text-slate-400">邻里闲置交换 · 平台运营与物业管理</p>
+          <h1 className="text-lg font-bold text-slate-800">邻里汇 管理后台</h1>
+          <p className="mt-1 text-sm text-slate-400">邻里汇小区服务 · 平台运营与物业管理</p>
         </div>
         <form onSubmit={submit} className="space-y-4">
           <Field label="用户名">

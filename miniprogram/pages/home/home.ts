@@ -201,7 +201,7 @@ Page({
   onShareAppMessage() {
     const me = getMe();
     return {
-      title: me && me.community ? `来${me.community.name}交换闲置吧` : "邻里闲置交换",
+      title: me && me.community ? `来${me.community.name}交换闲置吧` : "邻里汇小区服务",
       path: "/pages/home/home",
     };
   },

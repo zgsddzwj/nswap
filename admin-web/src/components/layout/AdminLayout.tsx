@@ -62,7 +62,7 @@ export function AdminLayout() {
     <div className="flex min-h-screen">
       <aside className="flex w-52 shrink-0 flex-col bg-slate-900 pt-4">
         <div className="border-b border-slate-700 px-4 pb-3">
-          <div className="text-sm font-bold text-white">nswap 管理后台</div>
+          <div className="text-sm font-bold text-white">邻里汇 管理后台</div>
           <div className="mt-0.5 text-xs text-slate-500">{communityLabel}</div>
         </div>
         <nav className="flex-1 py-2">
