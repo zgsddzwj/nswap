@@ -11,8 +11,11 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# pip 镜像源：国内服务器直连 PyPI 极慢，默认清华源；海外部署可
+# docker build --build-arg PIP_INDEX=https://pypi.org/simple 覆盖
+ARG PIP_INDEX=https://pypi.tuna.tsinghua.edu.cn/simple
 COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -i ${PIP_INDEX} -r requirements.txt
 
 COPY backend/ /app/
 COPY --from=web /web/dist /app/admin-web/dist

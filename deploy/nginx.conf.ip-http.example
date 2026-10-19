@@ -1,0 +1,63 @@
+# nswap Nginx 配置：IP 模式（域名/备案未就绪时的临时方案，docs/13 C-6）
+#
+# 与 nginx.conf.example 的区别：
+#   - listen 80 + server_name 为服务器公网 IP（无 HTTPS，仅供小程序体外验证/管理后台）
+#   - 小程序正式接入仍必须走 HTTPS + 备案域名（见 nginx.conf.example）
+#
+# 用法：scp 到服务器 → sudo install -m644 到 /etc/nginx/sites-available/nswap
+#       → sudo ln -sf ../sites-available/nswap /etc/nginx/sites-enabled/ → nginx -t && reload
+#
+# 注意：本 server 块与既有 default_server（server_name _）并存；
+# Host 为公网 IP 的请求优先命中本块，因此需把其他应用的子路径原样透传，
+# 避免 IP 访问下其他应用被本块截走。
+server {
+    listen 80;
+    listen [::]:80;
+    server_name 82.157.59.122;
+
+    client_max_body_size 10m;
+
+    add_header X-Content-Type-Options nosniff always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
+
+    gzip on;
+    gzip_types application/json application/javascript text/css text/plain image/svg+xml;
+    gzip_min_length 1k;
+
+    # ---- nswap 本体：根路径（/api /admin /uploads /healthz）----
+    location / {
+        proxy_pass http://127.0.0.1:8082;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        # 覆盖 XFF（丢弃客户端伪造值；docs/13 C-4）
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+    }
+
+    # ---- 与既有网关共存：透传同机其他应用的子路径 ----
+    location /adward/ {
+        rewrite ^/adward(/.*)$ $1 break;
+        proxy_pass http://127.0.0.1:8081;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    location = /adward {
+        return 301 /adward/;
+    }
+
+    location /shouliang/ {
+        rewrite ^/shouliang(/.*)$ $1 break;
+        proxy_pass http://127.0.0.1:8010;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    location = /shouliang {
+        return 301 /shouliang/;
+    }
+}

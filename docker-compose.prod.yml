@@ -1,0 +1,52 @@
+# 生产部署编排（自建服务器，docs/13 路线 C）
+#
+# 用法（服务器 ~/apps/nswap 下）：
+#   docker compose -f docker-compose.prod.yml up -d --build
+#   docker compose -f docker-compose.prod.yml exec backend alembic upgrade head
+#   docker compose -f docker-compose.prod.yml exec backend python scripts/seed.py --skip-demo
+#
+# 与本地 docker-compose.yml 的差异：
+#   - 后端只绑定 127.0.0.1:8082，由宿主机 Nginx 反向代理对外（不直接暴露端口）
+#   - MySQL 不发布任何端口，仅容器内网可达
+#   - 应用配置统一从 .env 读取（含 ADMIN_SESSION_SECRET / AUTH_TOKEN_SECRET / MYSQL_*）
+#   - restart: unless-stopped（服务器重启自动拉起）
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: nswap-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?请在 .env 配置}
+      MYSQL_DATABASE: nswap
+      MYSQL_USER: nswap
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?请在 .env 配置}
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - nswap_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: nswap-backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # 容器内网连接 MySQL（覆盖 .env 中可能存在的本机地址）
+      DATABASE_URL: mysql+pymysql://nswap:${MYSQL_PASSWORD}@mysql:3306/nswap?charset=utf8mb4
+    ports:
+      - "127.0.0.1:8082:8000"
+    volumes:
+      # 图片落宿主机盘：重启/重新部署不丢（上规模后再切 COS/CDN，与 docs/13 一致）
+      - ./data/uploads:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  nswap_mysql_data:
