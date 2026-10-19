@@ -21,9 +21,12 @@
  *   - 上传走 /api/uploads/base64（callContainer 通道，鉴权随 openid 注入）
  */
 
-export const LOCAL_DEV = true;
+// ⚠️ 当前为「自建服务器验证」配置（2026-10-19）：HTTP + 公网 IP，只能用于
+//    开发者工具（已配 urlCheck:false）或真机调试模式；域名与备案就绪后必须改为
+//    LOCAL_DEV 保持 false、SELF_HOSTED_BASE_URL = "https://域名/nswap"
+export const LOCAL_DEV = false;
 
-/** 电脑局域网 IP（`ipconfig getifaddr en0`），换网络后同步更新 */
+/** 电脑局域网 IP（本地联调时把 LOCAL_DEV 改回 true 并同步此 IP） */
 const LAN_IP = "192.168.0.230";
 
 /**
@@ -32,8 +35,9 @@ const LAN_IP = "192.168.0.230";
  * 例：export const SELF_HOSTED_BASE_URL = "https://api.your-domain.com";
  * 子路径隔离部署（nginx 网关多项目同机）时带上前缀，如 "https://域名/nswap"，
  * 管理后台入口会自动推导为 https://域名/nswap/admin。
+ * 当前值：自建服务器（子路径隔离 /nswap），HTTP+IP 仅供开发者工具验证。
  */
-export const SELF_HOSTED_BASE_URL = "";
+export const SELF_HOSTED_BASE_URL = "http://82.157.59.122/nswap";
 
 /** 部署模式：local=本地联调（X-DEV-OPENID）/ cloud=微信云托管 / self=自建服务器（token） */
 export type DeployMode = "local" | "cloud" | "self";
