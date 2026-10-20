@@ -1,16 +1,19 @@
 /* 我的意向页 */
 .mw__chips {
   display: flex;
-  gap: 16rpx;
+  flex-wrap: nowrap;
+  gap: 14rpx;
   padding: 24rpx 32rpx 8rpx;
 }
 
 .mw__chip {
-  padding: 12rpx 30rpx;
+  flex: none; /* 防止 flex 压缩导致 chip 内文字换行 */
+  white-space: nowrap;
+  padding: 12rpx 24rpx;
   border-radius: 999rpx;
   background: var(--ns-card);
   color: var(--ns-ink-2);
-  font-size: 26rpx;
+  font-size: 24rpx;
   border: 2rpx solid var(--ns-line);
 }
 

@@ -6,6 +6,9 @@ import { yuanToCents } from "../../utils/format";
  * - swap：可附「我用 XX 换」提议
  */
 Component({
+  // 允许 app.wxss 的全局设计系统类（ns-btn 等）在组件内生效：
+  // 否则提交按钮无背景色、文字不居中（默认 isolated 会隔离掉全局类）
+  options: { styleIsolation: "apply-shared" },
   properties: {
     show: { type: Boolean, value: false },
     itemType: { type: String, value: "sell" },

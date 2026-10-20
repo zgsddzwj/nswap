@@ -43,6 +43,8 @@ function buildCard(item: ItemCard) {
 }
 
 Component({
+  // 允许 app.wxss 全局类（ns-ellipsis / ns-ellipsis-2 / ns-price 等）在组件内生效
+  options: { styleIsolation: "apply-shared" },
   properties: {
     item: { type: Object },
     /** grid：双列网格卡；row：横向管理行（可带操作 slot） */
