@@ -49,7 +49,8 @@ class CosStorage:
     """
 
     def __init__(self) -> None:
-        import boto3  # 延迟导入：local 模式无需安装
+        import boto3
+        from botocore.config import Config
 
         self.client = boto3.client(
             "s3",
@@ -57,8 +58,12 @@ class CosStorage:
             aws_access_key_id=settings.cos_secret_id,
             aws_secret_access_key=settings.cos_secret_key,
             region_name=settings.cos_region,
-            config=__import__("botocore.config", fromlist=["Config"]).Config(
-                signature_version="s3v4", retries={"max_attempts": 3}
+            config=Config(
+                signature_version="s3v4",
+                # 腾讯 COS 强制虚拟主机式寻址（桶.cos.区域.myqcloud.com），
+                # boto3 默认路径式会被 PathStyleDomainForbidden 拒绝
+                s3={"addressing_style": "virtual"},
+                retries={"max_attempts": 3},
             ),
         )
         self.bucket = settings.cos_bucket
