@@ -23,6 +23,7 @@ interface WantRow {
   message: string;
   bid_cents: number | null;
   swap_offer: string | null;
+  images: string[];
   created_at: string;
   item: { id: number; title: string; cover: string | null } | null;
   statusText: string;
@@ -70,6 +71,13 @@ Page({
   goDetail(e: WechatMiniprogram.TouchEvent) {
     const id = e.currentTarget.dataset.id as number;
     if (id) wx.navigateTo({ url: `/pages/detail/detail?id=${id}` });
+  },
+
+  /** 我附上的交换物照片预览 */
+  onPreviewImg(e: WechatMiniprogram.TouchEvent) {
+    const src = e.currentTarget.dataset.src as string;
+    const row = (this.data.rows || []).find((w: WantRow) => (w.images || []).indexOf(src) >= 0) as any;
+    wx.previewImage({ current: src, urls: (row && row.images) || [src] });
   },
 
   async onWithdraw(e: WechatMiniprogram.TouchEvent) {

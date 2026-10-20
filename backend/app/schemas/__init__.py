@@ -57,6 +57,8 @@ class WantCreate(BaseModel):
     message: str = Field(min_length=1, max_length=300)
     bid_cents: int | None = None
     swap_offer: str | None = Field(default=None, max_length=200)
+    # 换物意向附图（我方交换物的照片，≤3 张，公网上传 URL；仅物品方可见）
+    images: list[str] = Field(default_factory=list, max_length=3)
 
 
 class WantAction(BaseModel):

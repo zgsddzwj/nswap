@@ -144,7 +144,7 @@
       bindtap="confirmWithdraw"
     >撤回意向</view>
     <view
-      class="ns-grow ns-btn ns-btn--primary {{footerMode === 'pending' || footerMode === 'archived' || footerMode === 'guest' ? 'ns-btn--disabled' : ''}}"
+      class="ns-grow ns-btn {{footerMode === 'pending' ? 'ns-btn--status' : 'ns-btn--primary'}} {{footerMode === 'archived' || footerMode === 'guest' ? 'ns-btn--disabled' : ''}}"
       hover-class="ns-btn--hover"
       bindtap="onFooterTap"
     >{{footerLabel}}</view>

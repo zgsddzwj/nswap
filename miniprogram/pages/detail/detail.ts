@@ -269,11 +269,18 @@ Page({  data: {
     this.setData({ showWantSheet: false });
   },
 
-  async onWantSubmit(e: WechatMiniprogram.CustomEvent<{ message: string; bid_cents: number | null; swap_offer: string | null }>) {
-    const { message, bid_cents, swap_offer } = e.detail;
+  async onWantSubmit(
+    e: WechatMiniprogram.CustomEvent<{
+      message: string;
+      bid_cents: number | null;
+      swap_offer: string | null;
+      images: string[];
+    }>
+  ) {
+    const { message, bid_cents, swap_offer, images } = e.detail;
     await requestSubscribe(["accepted"]);
     try {
-      await post(`/api/items/${this.id}/wants`, { message, bid_cents, swap_offer });
+      await post(`/api/items/${this.id}/wants`, { message, bid_cents, swap_offer, images });
       this.setData({ showWantSheet: false });
       wx.showToast({ title: "已通知卖家，请等待回应", icon: "none", duration: 2200 });
       this.fetchDetail(true);

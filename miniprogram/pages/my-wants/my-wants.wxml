@@ -27,6 +27,18 @@
       </view>
       <view class="ns-sub ns-ellipsis mw__msg">留言：{{item.message}}</view>
       <view class="ns-hint">{{item.timeText}}<text wx:if="{{item.swapOffer}}"> · 想用「{{item.swapOffer}}」换</text></view>
+      <view wx:if="{{item.images && item.images.length}}" class="mw__imgs">
+        <image
+          wx:for="{{item.images}}"
+          wx:for-item="img"
+          wx:key="*this"
+          class="mw__img"
+          src="{{img}}"
+          mode="aspectFill"
+          data-src="{{img}}"
+          catchtap="onPreviewImg"
+        />
+      </view>
     </view>
     <view
       wx:if="{{item.status === 'pending'}}"

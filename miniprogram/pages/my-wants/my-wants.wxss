@@ -101,3 +101,17 @@
 .mw__withdraw--hover {
   background: var(--ns-danger-light);
 }
+
+/* 我附上的交换物照片 */
+.mw__imgs {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 12rpx;
+}
+
+.mw__img {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 12rpx;
+  background: var(--ns-bg);
+}

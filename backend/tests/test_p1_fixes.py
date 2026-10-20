@@ -169,3 +169,45 @@ def test_my_wants_listing_and_withdraw(client, db, community, users):
 def test_my_wants_rejects_bad_status(client, db, community, users):
     r = client.get("/api/me/wants?status=whatever", headers=hdr("dev_alice"))
     assert r.status_code == 400
+
+
+# ---------- 换物意向附图 ----------
+
+def test_swap_want_with_images(client, db, community, users):
+    """换物贴意向可附照片（≤3），存储并在两个列表接口返回；非换物贴拒绝附图。"""
+    r = publish(client, "dev_alice", type="swap", title="滑板车换绘本", price_cents=None,
+                want_desc="想换绘本")
+    swap_item = r.json()["data"]["id"]
+    imgs = ["http://82.157.59.122/nswap/uploads/a.jpg", "http://82.157.59.122/nswap/uploads/b.jpg"]
+    r = client.post(
+        f"/api/items/{swap_item}/wants",
+        json={"message": "用这些换", "swap_offer": "两套绘本", "images": imgs},
+        headers=hdr("dev_bob"),
+    )
+    assert r.status_code == 200
+    want_id = r.json()["data"]["id"]
+
+    # 卖家视角可见附图
+    rows = client.get(f"/api/items/{swap_item}/wants", headers=hdr("dev_alice")).json()["data"]["list"]
+    assert rows[0]["images"] == imgs
+    # 意向方自己的「我的意向」也带附图
+    rows = client.get("/api/me/wants", headers=hdr("dev_bob")).json()["data"]["list"]
+    assert rows[0]["images"] == imgs
+
+    # 非换物贴（出售）拒绝附图与交换提议
+    r2 = publish(client, "dev_alice", title="普通出售")
+    sell_item = r2.json()["data"]["id"]
+    r3 = client.post(
+        f"/api/items/{sell_item}/wants",
+        json={"message": "想要", "images": ["http://x/1.jpg"]},
+        headers=hdr("dev_carol"),
+    )
+    assert r3.status_code == 400
+
+    # 超过 3 张拒绝
+    r4 = client.post(
+        f"/api/items/{swap_item}/wants",
+        json={"message": "再来一次", "images": ["http://x/1.jpg"] * 4},
+        headers=hdr("dev_bob"),
+    )
+    assert r4.status_code == 422  # pydantic max_length 校验

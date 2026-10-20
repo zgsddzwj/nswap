@@ -53,12 +53,20 @@ def create_want(
         raise bad_request("出价不合法")
 
     check_text(db, payload.message, user, "text", None)
+    if payload.swap_offer and item.type != "swap":
+        raise bad_request("只有换物贴可以附交换提议")
+    if payload.images and item.type != "swap":
+        raise bad_request("只有换物贴可以附照片")
+    for u in payload.images:
+        if not u.startswith("http"):
+            raise bad_request("图片地址不合法")
     want = ItemWant(
         item_id=item.id,
         user_id=user.id,
         message=payload.message.strip(),
         bid_cents=payload.bid_cents,
         swap_offer=payload.swap_offer,
+        images=payload.images or None,
         status="pending",
     )
     db.add(want)
@@ -120,6 +128,7 @@ def list_wants(
                     "message": w.message,
                     "bid_cents": w.bid_cents,
                     "swap_offer": w.swap_offer,
+                    "images": w.images or [],
                     "status": w.status,
                     "created_at": iso(w.created_at),
                     "user": user_summary(users[w.user_id], db, user, names)
@@ -280,6 +289,7 @@ def my_wants(
                     "message": w.message,
                     "bid_cents": w.bid_cents,
                     "swap_offer": w.swap_offer,
+                    "images": w.images or [],
                     "created_at": iso(w.created_at),
                     "item": (
                         {

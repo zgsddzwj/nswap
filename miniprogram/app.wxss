@@ -191,6 +191,13 @@ page {
   pointer-events: none;
 }
 
+/* 状态展示按钮（如「意向已提交」）：中性灰底，不再是半透明绿——
+   绿色半透明会被误读为「我想要」按钮的残留背景 */
+.ns-btn--status {
+  background: var(--ns-bg);
+  color: var(--ns-ink-2);
+}
+
 .ns-btn--sm {
   height: 64rpx;
   padding: 0 28rpx;

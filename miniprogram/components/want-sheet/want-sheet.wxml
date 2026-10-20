@@ -44,6 +44,18 @@
           t-class="ws__swap-input"
           bind:change="onSwapOffer"
         />
+        <view class="ws__label">附上你想交换的物品照片 <text class="ws__label-sub">选填，最多 3 张</text></view>
+        <view class="ws__images">
+          <view wx:for="{{images}}" wx:key="*this" class="ws__thumb">
+            <image class="ws__thumb-img" src="{{item}}" mode="aspectFill" />
+            <view class="ws__thumb-del" data-index="{{index}}" catchtap="onDeleteImage">
+              <t-icon name="close" size="24rpx" color="#FFFFFF" />
+            </view>
+          </view>
+          <view wx:if="{{images.length < 3}}" class="ws__thumb-add {{uploading ? 'ws__thumb-add--busy' : ''}}" hover-class="ws__thumb-add--hover" bindtap="onAddImage">
+            <text>{{uploading ? '…' : '＋'}}</text>
+          </view>
+        </view>
       </block>
     </scroll-view>
 

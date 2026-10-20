@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, JSON, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.time import utcnow
@@ -62,6 +62,8 @@ class ItemWant(Base):
     message: Mapped[str] = mapped_column(String(300))
     bid_cents: Mapped[int | None] = mapped_column(Integer)
     swap_offer: Mapped[str | None] = mapped_column(String(200))
+    # 换物意向附图（我方用于交换的物品照片，≤3 张；仅物品方可见，URL 为公网上传图）
+    images: Mapped[list | None] = mapped_column(JSON)
     status: Mapped[str] = mapped_column(String(10), default="pending", index=True)
     # pending|accepted|rejected|done
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

@@ -8,6 +8,7 @@ interface WantItem {
   message: string;
   bid_cents: number | null;
   swap_offer: string | null;
+  images: string[];
   status: string;
   created_at: string;
   user: UserSummary;
@@ -95,5 +96,12 @@ Page({
 
   goItem() {
     wx.navigateTo({ url: `/pages/detail/detail?id=${this.itemId}` });
+  },
+
+  /** 意向附图预览（换物意向：对方交换物的照片） */
+  onPreviewImg(e: WechatMiniprogram.TouchEvent) {
+    const src = e.currentTarget.dataset.src as string;
+    const want = (this.data.wants || []).find((w: WantItem) => (w.images || []).indexOf(src) >= 0);
+    wx.previewImage({ current: src, urls: (want && want.images) || [src] });
   },
 });
