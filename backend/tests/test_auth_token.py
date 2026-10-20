@@ -76,3 +76,83 @@ def test_no_code_login_still_works_for_cloud_and_dev(client, db, community, user
     # 无 body 的调用（前端云托管模式现状）也必须成功
     r2 = client.post("/api/auth/login", headers=hdr("dev_alice"))
     assert r2.status_code == 200
+
+
+# ---------- 资料修改的内容安全（昵称先检后发 / 头像异步检测登记） ----------
+
+def test_nickname_risk_rejected(client, db, community, users, monkeypatch):
+    from app.services import wechat
+
+    monkeypatch.setattr(wechat.client, "msg_sec_check", lambda *a, **k: "risk")
+    r = client.put("/api/me", json={"nickname": "加V卖东西"}, headers=hdr("dev_alice"))
+    assert r.status_code == 400
+    assert "敏感" in r.json()["message"]
+
+
+def test_nickname_api_error_fail_closed(client, db, community, users, monkeypatch):
+    from app.services import wechat
+
+    monkeypatch.setattr(wechat.client, "msg_sec_check", lambda *a, **k: "error")
+    r = client.put("/api/me", json={"nickname": "正常昵称"}, headers=hdr("dev_alice"))
+    assert r.status_code == 400
+    assert "稍后再试" in r.json()["message"]
+
+
+def test_nickname_pass_saved(client, db, community, users):
+    r = client.put("/api/me", json={"nickname": "3栋小艾"}, headers=hdr("dev_alice"))
+    assert r.status_code == 200
+    assert r.json()["data"]["user"]["nickname"] == "3栋小艾"
+
+
+def test_nickname_empty_rejected(client, db, community, users):
+    r = client.put("/api/me", json={"nickname": "  "}, headers=hdr("dev_alice"))
+    assert r.status_code == 400
+
+
+def test_avatar_mock_mode_saves_directly(client, db, community, users):
+    r = client.put(
+        "/api/me", json={"avatar_url": "http://82.157.59.122/nswap/uploads/a.jpg"},
+        headers=hdr("dev_alice"),
+    )
+    assert r.status_code == 200
+    assert r.json()["data"]["user"]["avatar_url"].endswith("a.jpg")
+
+
+def test_avatar_api_error_fail_closed(client, db, community, users, monkeypatch):
+    from app.core.config import settings
+    from app.services import wechat
+
+    monkeypatch.setattr(settings, "wx_call_mode", "token")  # 测试环境默认 mock，先切 token 模式
+    monkeypatch.setattr(wechat.client, "media_check_async", lambda *a, **k: None)
+    old = client.get("/api/me", headers=hdr("dev_alice")).json()["data"]["user"]["avatar_url"]
+    r = client.put(
+        "/api/me", json={"avatar_url": "http://82.157.59.122/nswap/uploads/bad.jpg"},
+        headers=hdr("dev_alice"),
+    )
+    assert r.status_code == 400
+    # 原头像保持不变
+    r2 = client.get("/api/me", headers=hdr("dev_alice"))
+    assert r2.json()["data"]["user"]["avatar_url"] == old
+
+
+def test_avatar_risk_callback_resets_avatar(client, db, community, users, monkeypatch):
+    """token 模式：头像登记异步检测，回调 risk 时被清空 + 通知用户。"""
+    from app.core.config import settings
+    from app.services import wechat
+    from app.services.sec_check import handle_media_check_result
+
+    monkeypatch.setattr(settings, "wx_call_mode", "token")
+    monkeypatch.setattr(wechat.client, "media_check_async", lambda *a, **k: "TRACE-AV")
+    r = client.put(
+        "/api/me", json={"avatar_url": "http://x/uploads/risky.jpg"}, headers=hdr("dev_alice")
+    )
+    assert r.status_code == 200
+    handle_media_check_result(db, "TRACE-AV", {"suggest": "risky", "label": 20001})
+    # 回调后头像被清空
+    r2 = client.get("/api/me", headers=hdr("dev_alice"))
+    assert r2.json()["data"]["user"]["avatar_url"] == ""
+    r = client.get("/api/me", headers=hdr("dev_alice"))
+    assert r.json()["data"]["user"]["avatar_url"] == ""
+    # 用户收到重置通知
+    notifs = client.get("/api/notifications?unread_only=true", headers=hdr("dev_alice")).json()["data"]["list"]
+    assert any(n["type"] == "content_rejected" for n in notifs)

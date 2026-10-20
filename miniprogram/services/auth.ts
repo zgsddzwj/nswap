@@ -112,9 +112,10 @@ export async function refreshUnreadBadge() {
     const r = await get<{ unread_count: number }>("/api/me/unread");
     const n = r.unread_count || 0;
     if (n > 0) {
-      wx.setTabBarBadge({ index: 2, text: String(Math.min(n, 99)) });
+      // tabBar 移除发布页后：首页0 / 消息1 / 我的2
+      wx.setTabBarBadge({ index: 1, text: String(Math.min(n, 99)) });
     } else {
-      wx.removeTabBarBadge({ index: 2 });
+      wx.removeTabBarBadge({ index: 1 });
     }
   } catch {
     /* 静默失败 */

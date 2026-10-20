@@ -138,7 +138,8 @@ Page({
   },
 
   goPublish() {
-    wx.switchTab({ url: "/pages/publish/publish" });
+    // 发布页已从 tabBar 移除，改 navigateTo
+    wx.navigateTo({ url: "/pages/publish/publish" });
   },
 
   onRetry() {

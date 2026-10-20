@@ -8,9 +8,10 @@ from app.core.deps import get_current_user, get_db, get_or_create_user, resolve_
 from app.core.errors import bad_request, conflict, unauthorized
 from app.core.security import create_auth_token
 from app.core.time import utcnow
-from app.models import AdminLog, User
+from app.models import AdminLog, SecCheck, User
 from app.schemas import ContactSettings, LoginRequest, ProfileUpdate
 from app.schemas.serialize import me_payload, ok
+from app.services.sec_check import check_text, register_avatar_check
 from app.services.wechat import client as wechat_client
 
 router = APIRouter(tags=["auth"])
@@ -60,9 +61,23 @@ def update_me(
     db: Session = Depends(get_db),
 ):
     if payload.nickname is not None:
-        user.nickname = payload.nickname
+        nickname = payload.nickname.strip()
+        if not nickname:
+            raise bad_request("昵称不能为空")
+        # 昵称展示给所有邻居（物品卡/留言/会话），属 UGC：先检后发；
+        # 接口异常同样拒绝（fail-closed，与 docs/03 §2.3 文本策略一致）
+        status = check_text(db, nickname, user, "text", user.id)
+        if status != "pass":
+            raise bad_request("当前无法校验昵称，请稍后再试")
+        user.nickname = nickname
     if payload.avatar_url is not None:
-        user.avatar_url = payload.avatar_url
+        avatar = payload.avatar_url.strip()
+        if avatar and avatar != user.avatar_url:
+            # 头像展示给所有邻居，属 UGC 图片：登记异步检测；
+            # 接口不可用时拒绝变更（fail-closed），mock 模式直接放行
+            if not register_avatar_check(db, user, avatar):
+                raise bad_request("头像暂时无法校验，请稍后再试")
+        user.avatar_url = avatar
     if payload.unit is not None:
         user.unit = payload.unit
     db.commit()

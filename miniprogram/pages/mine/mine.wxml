@@ -48,6 +48,11 @@
 
     <!-- 功能入口 -->
     <view class="ns-card mine__menu">
+      <view class="ns-cell mine__cell" hover-class="ns-cell--hover" data-url="/pages/publish/publish" bindtap="go">
+        <view class="ns-cell__hd"><t-icon name="add-circle" size="40rpx" color="var(--ns-swap)" /></view>
+        <view class="ns-cell__bd">发布闲置</view>
+        <t-icon name="chevron-right" size="36rpx" color="var(--ns-ink-3)" />
+      </view>
       <view class="ns-cell mine__cell" hover-class="ns-cell--hover" data-url="/pages/my-items/my-items" bindtap="go">
         <view class="ns-cell__hd"><t-icon name="shop" size="40rpx" color="var(--ns-brand)" /></view>
         <view class="ns-cell__bd">我的发布</view>

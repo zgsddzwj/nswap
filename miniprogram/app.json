@@ -40,12 +40,6 @@
         "selectedIconPath": "assets/tabbar/home-active.png"
       },
       {
-        "pagePath": "pages/publish/publish",
-        "text": "发布",
-        "iconPath": "assets/tabbar/publish.png",
-        "selectedIconPath": "assets/tabbar/publish-active.png"
-      },
-      {
         "pagePath": "pages/messages/messages",
         "text": "消息",
         "iconPath": "assets/tabbar/message.png",

@@ -121,4 +121,9 @@
   />
 
   <view wx:if="{{footerText}}" class="ns-list-footer">{{footerText}}</view>
+
+  <!-- 发布悬浮按钮（发布页已从 tabBar 移除，docs 需求：轻量入口） -->
+  <view class="home__fab" hover-class="home__fab--hover" bindtap="goPublish" aria-label="发布闲置">
+    <text class="home__fab-icon">＋</text>
+  </view>
 </view>

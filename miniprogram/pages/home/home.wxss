@@ -185,3 +185,32 @@
   font-size: 26rpx;
   color: var(--ns-ink);
 }
+
+/* 发布悬浮按钮（发布页已从 tabBar 移除，改为首页轻量入口） */
+.home__fab {
+  position: fixed;
+  right: 40rpx;
+  bottom: calc(180rpx + env(safe-area-inset-bottom));
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 50%;
+  background: var(--ns-brand);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12rpx 32rpx rgba(14, 122, 90, 0.38);
+  z-index: 50;
+}
+
+.home__fab-icon {
+  font-size: 64rpx;
+  font-weight: 300;
+  line-height: 1;
+  margin-top: -6rpx;
+}
+
+.home__fab--hover {
+  transform: scale(0.94);
+  opacity: 0.9;
+}

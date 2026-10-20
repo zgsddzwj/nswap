@@ -162,10 +162,16 @@ Page({
 
   onEmptyAction() {
     if (this.data.verified) {
-      wx.switchTab({ url: "/pages/publish/publish" });
+      // 发布页已从 tabBar 移除（改悬浮按钮入口），用 navigateTo
+      wx.navigateTo({ url: "/pages/publish/publish" });
     } else {
       this.goVerify();
     }
+  },
+
+  /** 发布悬浮按钮：进入发布选择页 */
+  goPublish() {
+    wx.navigateTo({ url: "/pages/publish/publish" });
   },
 
   goGratitude(e: WechatMiniprogram.TouchEvent) {
