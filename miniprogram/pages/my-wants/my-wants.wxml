@@ -1,0 +1,48 @@
+<view class="page">
+  <!-- 状态过滤（兼统计视角：待回应/已接受/已完成/未通过） -->
+  <view class="mw__chips">
+    <view
+      wx:for="{{chips}}"
+      wx:key="key"
+      class="mw__chip {{filter === item.key ? 'mw__chip--on' : ''}}"
+      data-key="{{item.key}}"
+      hover-class="mw__chip--hover"
+      bindtap="onChip"
+    >{{item.label}}</view>
+  </view>
+
+  <view
+    wx:for="{{rows}}"
+    wx:key="id"
+    class="ns-card mw__row"
+    data-id="{{item.item.id}}"
+    hover-class="mw__row--hover"
+    bindtap="goDetail"
+  >
+    <image class="mw__thumb" src="{{item.item.cover || '/assets/tabbar/home.png'}}" mode="aspectFill" />
+    <view class="ns-grow mw__body">
+      <view class="mw__row-top">
+        <text class="mw__title ns-ellipsis">{{item.item.title}}</text>
+        <text class="mw__badge mw__badge--{{item.status}}">{{item.statusText}}</text>
+      </view>
+      <view class="ns-sub ns-ellipsis mw__msg">留言：{{item.message}}</view>
+      <view class="ns-hint">{{item.timeText}}<text wx:if="{{item.swapOffer}}"> · 想用「{{item.swapOffer}}」换</text></view>
+    </view>
+    <view
+      wx:if="{{item.status === 'pending'}}"
+      class="mw__withdraw"
+      hover-class="mw__withdraw--hover"
+      data-id="{{item.id}}"
+      catchtap="onWithdraw"
+    >撤回</view>
+  </view>
+
+  <empty-state
+    wx:if="{{!rows.length && !loading}}"
+    icon="star"
+    text="还没有提交过意向"
+    sub="看到心仪的闲置，点「我想要」让邻居知道"
+    actionText="去逛逛"
+    bind:action="goHome"
+  />
+</view>

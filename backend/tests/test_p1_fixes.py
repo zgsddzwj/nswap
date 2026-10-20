@@ -122,3 +122,50 @@ def test_proof_upload_rejects_bad_kind_and_path_traversal(client, db, community,
     client.post("/api/admin/auth/login", json={"username": "admin", "password": "nswap123"})
     r2 = client.get("/api/admin/proofs/..%2F..%2F.env")
     assert r2.status_code in (400, 404)
+
+
+# ---------- 我的意向（列表/统计/撤回） ----------
+
+def test_my_wants_listing_and_withdraw(client, db, community, users):
+    """我的意向页：能看到自己提交的意向与状态；撤回后状态变更且物品计数回落。"""
+    r = publish(client, "dev_alice", title="我的意向测试")
+    item_id = r.json()["data"]["id"]
+
+    r = client.post(
+        f"/api/items/{item_id}/wants", json={"message": "想要", "bid_cents": 500},
+        headers=hdr("dev_bob"),
+    )
+    want_id = r.json()["data"]["id"]
+
+    # bob 的「我的意向」
+    r = client.get("/api/me/wants", headers=hdr("dev_bob"))
+    rows = r.json()["data"]["list"]
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["id"] == want_id and row["status"] == "pending"
+    assert row["item"]["id"] == item_id and row["item"]["title"] == "我的意向测试"
+    assert row["bid_cents"] == 500
+
+    # 状态过滤
+    r = client.get("/api/me/wants?status=accepted", headers=hdr("dev_bob"))
+    assert r.json()["data"]["list"] == []
+
+    # alice 意向数统计
+    d = client.get(f"/api/items/{item_id}", headers=hdr("dev_alice")).json()["data"]
+    assert d["want_count"] == 1
+
+    # bob 撤回 → 状态 rejected、计数回落
+    r = client.delete(f"/api/wants/{want_id}", headers=hdr("dev_bob"))
+    assert r.status_code == 200
+    d = client.get(f"/api/items/{item_id}", headers=hdr("dev_alice")).json()["data"]
+    assert d["want_count"] == 0
+    rows = client.get("/api/me/wants", headers=hdr("dev_bob")).json()["data"]["list"]
+    assert rows[0]["status"] == "rejected"
+    # 撤回后可重新提交
+    r = client.post(f"/api/items/{item_id}/wants", json={"message": "再试一次"}, headers=hdr("dev_bob"))
+    assert r.status_code == 200
+
+
+def test_my_wants_rejects_bad_status(client, db, community, users):
+    r = client.get("/api/me/wants?status=whatever", headers=hdr("dev_alice"))
+    assert r.status_code == 400

@@ -2,6 +2,22 @@
   background: var(--ns-card);
   border-radius: 32rpx 32rpx 0 0;
   padding: 32rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 表单区可滚动，提交按钮钉在底部始终可见（用户反馈：提交按钮曾被顶出视野） */
+.ws__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.ws__footer {
+  flex: none;
+  padding-top: 24rpx;
+  background: var(--ns-card);
 }
 
 .ws__header {
@@ -68,10 +84,19 @@
 }
 
 .ws__submit {
-  margin-top: 40rpx;
+  margin-top: 8rpx;
+  height: 96rpx;
+  border-radius: 999rpx;
+  font-size: 32rpx;
+  font-weight: 800;
+  letter-spacing: 4rpx;
+  box-shadow: 0 10rpx 28rpx rgba(14, 122, 90, 0.32);
 }
 
-.ws__submit--hover { opacity: 0.85; }
+.ws__submit--hover {
+  opacity: 0.88;
+  transform: scale(0.99);
+}
 
 .ws__tip {
   text-align: center;

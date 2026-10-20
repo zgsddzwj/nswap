@@ -1,0 +1,100 @@
+/* 我的意向页 */
+.mw__chips {
+  display: flex;
+  gap: 16rpx;
+  padding: 24rpx 32rpx 8rpx;
+}
+
+.mw__chip {
+  padding: 12rpx 30rpx;
+  border-radius: 999rpx;
+  background: var(--ns-card);
+  color: var(--ns-ink-2);
+  font-size: 26rpx;
+  border: 2rpx solid var(--ns-line);
+}
+
+.mw__chip--on {
+  background: var(--ns-brand);
+  border-color: var(--ns-brand);
+  color: #fff;
+  font-weight: 700;
+}
+
+.mw__chip--hover { opacity: 0.85; }
+
+.mw__row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin: 20rpx 32rpx 0;
+  padding: 24rpx;
+}
+
+.mw__row--hover { background: var(--ns-brand-soft); }
+
+.mw__thumb {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 16rpx;
+  background: var(--ns-bg);
+  flex: none;
+}
+
+.mw__body { min-width: 0; }
+
+.mw__row-top {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.mw__title {
+  font-size: 29rpx;
+  font-weight: 700;
+  color: var(--ns-ink);
+  flex: 1;
+}
+
+.mw__badge {
+  flex: none;
+  font-size: 21rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  font-weight: 600;
+}
+
+.mw__badge--pending {
+  color: var(--ns-warning);
+  background: var(--ns-warning-light);
+}
+
+.mw__badge--accepted {
+  color: var(--ns-brand);
+  background: var(--ns-brand-light);
+}
+
+.mw__badge--done {
+  color: var(--ns-success);
+  background: var(--ns-success-light);
+}
+
+.mw__badge--rejected {
+  color: var(--ns-danger);
+  background: var(--ns-danger-light);
+}
+
+.mw__msg { margin-top: 8rpx; }
+
+.mw__withdraw {
+  flex: none;
+  font-size: 25rpx;
+  color: var(--ns-danger);
+  border: 2rpx solid var(--ns-danger);
+  border-radius: 999rpx;
+  padding: 10rpx 26rpx;
+}
+
+.mw__withdraw--hover {
+  background: var(--ns-danger-light);
+}

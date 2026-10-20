@@ -18,6 +18,7 @@
     "pages/my-items/my-items",
     "pages/favorites/favorites",
     "pages/my-trades/my-trades",
+    "pages/my-wants/my-wants",
     "pages/agreement/agreement"
   ],
   "window": {

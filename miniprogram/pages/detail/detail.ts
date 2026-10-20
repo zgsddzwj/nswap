@@ -152,7 +152,7 @@ Page({  data: {
       return { footerMode: "reserved", footerLabel: "查看交易", footerReason: "" };
     }
     if (d.my_want && d.my_want.status === "pending") {
-      return { footerMode: "pending", footerLabel: "意向已提交", footerReason: "等待卖家回应，可撤回后重新提交" };
+      return { footerMode: "pending", footerLabel: "意向已提交", footerReason: "等待卖家回应；可撤回后重新提交" };
     }
     if (d.my_want && d.my_want.status === "accepted") {
       return { footerMode: "accepted", footerLabel: "和 TA 聊聊", footerReason: "" };
@@ -191,7 +191,8 @@ Page({  data: {
         this.setData({ showWantSheet: true });
         break;
       case "pending":
-        this.confirmWithdraw();
+        // 主按钮此时是状态展示（撤回走左侧红色描边按钮），避免误触反向操作
+        wx.showToast({ title: "已提交，等待卖家回应", icon: "none" });
         break;
       default:
         if (this.data.footerReason) wx.showToast({ title: this.data.footerReason, icon: "none" });

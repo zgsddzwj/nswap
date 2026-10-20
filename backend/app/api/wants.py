@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db, get_verified_user
@@ -242,3 +242,61 @@ def withdraw_want(
         item.want_count -= 1
     db.commit()
     return ok({"ok": True})
+
+
+@router.get("/me/wants")
+def my_wants(
+    status: str | None = None,
+    cursor: int | None = None,
+    limit: int = Query(default=20, ge=1, le=50),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """我提交的意向（我的意向页）：含物品摘要与状态，支持按状态过滤。"""
+
+    if status is not None and status not in ("pending", "accepted", "done", "rejected"):
+        raise bad_request("状态筛选不合法")
+    q = db.query(ItemWant).filter(ItemWant.user_id == user.id)
+    if status:
+        q = q.filter(ItemWant.status == status)
+    q = q.order_by(ItemWant.id.desc())
+    if cursor:
+        q = q.filter(ItemWant.id < cursor)
+    rows = q.limit(limit + 1).all()
+    next_cursor = rows[-1].id if len(rows) > limit else None
+    rows = rows[:limit]
+    items = {i.id: i for i in db.query(Item).filter(Item.id.in_([w.item_id for w in rows]))}
+    covers = {}
+    if items:
+        from app.schemas.serialize import _visible_images
+
+        covers = _visible_images(db, list(items.keys()))
+    return ok(
+        {
+            "list": [
+                {
+                    "id": w.id,
+                    "status": w.status,
+                    "message": w.message,
+                    "bid_cents": w.bid_cents,
+                    "swap_offer": w.swap_offer,
+                    "created_at": iso(w.created_at),
+                    "item": (
+                        {
+                            "id": it.id,
+                            "title": it.title,
+                            "cover": covers.get(it.id, [None])[0],
+                            "type": it.type,
+                            "status": it.status,
+                            "price_cents": it.price_cents,
+                            "building": it.building,
+                        }
+                        if (it := items.get(w.item_id))
+                        else None
+                    ),
+                }
+                for w in rows
+            ],
+            "next_cursor": next_cursor,
+        }
+    )

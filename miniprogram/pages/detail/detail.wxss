@@ -295,3 +295,13 @@
 }
 
 .report__submit { margin-top: 24rpx; }
+
+/* 撤回意向按钮（pending 态下与主按钮并排） */
+.detail__withdraw {
+  flex: none;
+  padding: 0 28rpx;
+  border: 2rpx solid var(--ns-danger);
+  color: var(--ns-danger);
+  background: transparent;
+  margin-right: 16rpx;
+}

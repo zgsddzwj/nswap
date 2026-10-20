@@ -7,48 +7,53 @@
       </view>
     </view>
 
-    <view class="ws__label">留言 <text class="ws__label-sub">让邻居知道你的诚意</text></view>
-    <t-textarea
-      value="{{message}}"
-      placeholder="例：我家正需要这个，可以明天下午来取"
-      maxlength="{{300}}"
-      indicator
-      autosize="{{ { minHeight: 120, maxHeight: 240 } }}"
-      t-class="ws__textarea"
-      bind:change="onMessage"
-    />
-
-    <block wx:if="{{itemType === 'sell' && negotiable}}">
-      <view class="ws__label">出价（可小刀）<text class="ws__label-sub">选填</text></view>
-      <view class="ws__bid">
-        <text class="ws__bid__symbol">¥</text>
-        <t-input
-          value="{{bidYuan}}"
-          type="digit"
-          placeholder="如 12.5"
-          borderless
-          t-class="ws__bid-input"
-          bind:change="onBid"
-        />
-      </view>
-    </block>
-
-    <block wx:if="{{itemType === 'swap'}}">
-      <view class="ws__label">我用什么换 <text class="ws__label-sub">选填</text></view>
-      <t-input
-        value="{{swapOffer}}"
-        placeholder="例：我可以用一套绘本交换"
-        borderless
-        t-class="ws__swap-input"
-        bind:change="onSwapOffer"
+    <!-- 表单区：可滚动，保证提交按钮始终钉在弹层底部可见 -->
+    <scroll-view class="ws__scroll" scroll-y enhanced show-scrollbar="{{false}}">
+      <view class="ws__label">留言 <text class="ws__label-sub">让邻居知道你的诚意</text></view>
+      <t-textarea
+        value="{{message}}"
+        placeholder="例：我家正需要这个，可以明天下午来取"
+        maxlength="{{300}}"
+        indicator
+        autosize="{{ { minHeight: 120, maxHeight: 240 } }}"
+        t-class="ws__textarea"
+        bind:change="onMessage"
       />
-    </block>
 
-    <view
-      class="ns-btn ns-btn--primary ws__submit {{sending ? 'ns-btn--disabled' : ''}}"
-      hover-class="ws__submit--hover"
-      bindtap="onSubmit"
-    >提交意向</view>
-    <view class="ns-hint ws__tip">提交后卖家会收到通知，由 TA 自由挑选</view>
+      <block wx:if="{{itemType === 'sell' && negotiable}}">
+        <view class="ws__label">出价（可小刀）<text class="ws__label-sub">选填</text></view>
+        <view class="ws__bid">
+          <text class="ws__bid__symbol">¥</text>
+          <t-input
+            value="{{bidYuan}}"
+            type="digit"
+            placeholder="如 12.5"
+            borderless
+            t-class="ws__bid-input"
+            bind:change="onBid"
+          />
+        </view>
+      </block>
+
+      <block wx:if="{{itemType === 'swap'}}">
+        <view class="ws__label">我用什么换 <text class="ws__label-sub">选填</text></view>
+        <t-input
+          value="{{swapOffer}}"
+          placeholder="例：我可以用一套绘本交换"
+          borderless
+          t-class="ws__swap-input"
+          bind:change="onSwapOffer"
+        />
+      </block>
+    </scroll-view>
+
+    <view class="ws__footer">
+      <view
+        class="ns-btn ns-btn--primary ws__submit {{sending ? 'ns-btn--disabled' : ''}}"
+        hover-class="ws__submit--hover"
+        bindtap="onSubmit"
+      >{{sending ? '提交中…' : '提交意向'}}</view>
+      <view class="ns-hint ws__tip">提交后卖家会收到通知，由 TA 自由挑选</view>
+    </view>
   </view>
 </t-popup>
