@@ -31,6 +31,14 @@ if settings.sentry_dsn:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    # 会话密钥守卫（docs/12 P0-2）：生产环境拒绝默认/空密钥启动——
+    # SessionMiddleware 是签名 cookie，密钥公开即等于管理后台裸奔
+    if settings.env == "prod":
+        weak = {"", "dev-secret", "please-change-me-to-random-string", "change-me"}
+        if settings.admin_session_secret in weak:
+            raise RuntimeError(
+                "生产环境 ADMIN_SESSION_SECRET 不能为空或默认值，请在环境变量中配置强随机串"
+            )
     scheduler = None
     if settings.enable_scheduler:
         try:

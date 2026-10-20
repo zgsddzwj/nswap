@@ -54,23 +54,33 @@ function multipartUpload(
   });
 }
 
-/** 上传单张图片（先压缩；网络失败自动重试一次，docs/09 P1-11） */
-export async function uploadImage(tempFilePath: string): Promise<string> {
+/**
+ * 上传单张图片（先压缩；网络失败自动重试一次，docs/09 P1-11）。
+ * kind=proof：业主凭证等敏感图，走独立通道（返回鉴权读取 URL，不进公网静态目录）。
+ */
+export async function uploadImage(
+  tempFilePath: string,
+  kind: "public" | "proof" = "public"
+): Promise<string> {
   try {
-    return await _uploadImageOnce(tempFilePath);
+    return await _uploadImageOnce(tempFilePath, kind);
   } catch (e) {
     await new Promise((r) => setTimeout(r, 600));
-    return _uploadImageOnce(tempFilePath);
+    return _uploadImageOnce(tempFilePath, kind);
   }
 }
 
-async function _uploadImageOnce(tempFilePath: string): Promise<string> {
+async function _uploadImageOnce(
+  tempFilePath: string,
+  kind: "public" | "proof"
+): Promise<string> {
   const src = await compress(tempFilePath);
   if (ALLOWED_EXT.indexOf(extOf(src)) === -1) {
     throw new Error("仅支持 jpg/png/webp 图片");
   }
   if (DEPLOY_MODE === "local") {
-    return multipartUpload(CONFIG.DEV_BASE_URL + "/api/uploads", src, {
+    const qs = kind === "proof" ? "?kind=proof" : "";
+    return multipartUpload(CONFIG.DEV_BASE_URL + "/api/uploads" + qs, src, {
       "X-DEV-OPENID": devOpenid(),
     });
   }
@@ -78,8 +88,9 @@ async function _uploadImageOnce(tempFilePath: string): Promise<string> {
     const token = getAuthToken();
     const header: Record<string, string> = {};
     if (token) header.Authorization = `Bearer ${token}`;
+    const qs = kind === "proof" ? "?kind=proof" : "";
     return multipartUpload(
-      CONFIG.SELF_HOSTED_BASE_URL.replace(/\/$/, "") + "/api/uploads",
+      CONFIG.SELF_HOSTED_BASE_URL.replace(/\/$/, "") + "/api/uploads" + qs,
       src,
       header
     );
@@ -89,6 +100,7 @@ async function _uploadImageOnce(tempFilePath: string): Promise<string> {
   const r = await post<{ url: string }>("/api/uploads/base64", {
     filename: `upload${extOf(src)}`,
     content,
+    kind,
   });
   return r.url;
 }

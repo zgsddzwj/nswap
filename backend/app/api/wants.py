@@ -79,7 +79,7 @@ def create_want(
         owner,
         "want",
         {"thing1": {"value": item.title[:20]}, "thing2": {"value": (user.nickname or "邻居")[:20]}},
-        page=f"pages/detail/index?id={item.id}",
+        page=f"pages/detail/detail?id={item.id}",
     )
     db.flush()
     # 回填 want_id 供通知直达意向管理页
@@ -217,7 +217,7 @@ def handle_want(
         wanter,
         "accepted",
         {"thing1": {"value": item.title[:20]}},
-        page=f"pages/trade/index?id={trade.id}",
+        page=f"pages/trade/trade?id={trade.id}",
     )
     db.commit()
     return ok({"trade_id": trade.id, "conversation_id": conv.id})

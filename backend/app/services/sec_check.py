@@ -38,14 +38,28 @@ def check_text(
 
 
 def register_item_images(db: Session, item: Item, urls: list[str], owner: User) -> None:
-    """为物品登记图片并发起异步检测（先发后撤：pending 即展示，回调 risk 立即隐藏）。"""
+    """为物品登记图片并发起异步检测（先发后撤：pending 即展示，回调 risk 立即隐藏）。
+
+    mock 模式直接置 pass；token/cloud 模式下接口不可用（无 trace_id）时保持 pending
+    并落 SecCheck(error) 记录，进入管理端待审队列——不得静默放行（fail-closed）。
+    """
     for order, url in enumerate(urls):
         img = ItemImage(item_id=item.id, url=url, sort_order=order, sec_status="pending")
         db.add(img)
         db.flush()
+        if settings.wx_call_mode == "mock":
+            img.sec_status = "pass"
+            continue
         trace_id = client.media_check_async(url, owner.openid)
         if trace_id is None:
-            img.sec_status = "pass"
+            db.add(
+                SecCheck(
+                    target_type="image",
+                    target_id=img.id,
+                    status="error",
+                    detail={"reason": "media_check_async unavailable", "url_head": url[:60]},
+                )
+            )
         else:
             img.trace_id = trace_id
             db.add(

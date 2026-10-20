@@ -5,14 +5,18 @@
 """
 
 import logging
+import os
+import re
 from datetime import timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query, Request
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.deps import gen_invite_code, get_db
-from app.core.errors import bad_request, forbidden, unauthorized
+from app.core.errors import bad_request, forbidden, not_found, unauthorized
 from app.core.security import hash_password, verify_password
 from app.core.time import iso, utcnow
 from app.models import (
@@ -1202,3 +1206,27 @@ def admin_delete_faq(
     db.delete(p)
     db.commit()
     return ok({"ok": True})
+
+
+# ---------- 业主凭证图鉴权读取（docs/12 P1-4） ----------
+
+@router.get("/proofs/{filename}")
+def get_proof_file(
+    filename: str,
+    admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """业主凭证图（房产证等敏感材料）鉴权读取。
+
+    凭证存独立目录（PROOF_DIR，不进 /uploads 静态目录），仅管理员会话可读；
+    文件名 UUID 白名单防路径穿越；每次读取落审计日志。
+    注：凭证 URL 无公网可读性，因此不走 mediaCheckAsync（微信侧无法下载）。
+    """
+    if not re.fullmatch(r"[0-9a-f]{32}\.(jpg|jpeg|png|webp)", filename):
+        raise not_found("文件不存在")
+    path = os.path.join(settings.proof_dir, filename)
+    if not os.path.isfile(path):
+        raise not_found("文件不存在")
+    _log(db, admin, "view_proof", "proof", None, filename)
+    db.commit()
+    return FileResponse(path)

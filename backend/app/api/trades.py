@@ -113,7 +113,7 @@ def arrange_trade(
         counterpart,
         "confirm",
         {"thing1": {"value": (item.title if item else "物品")[:20]}},
-        page=f"pages/trade/index?id={trade.id}",
+        page=f"pages/trade/trade?id={trade.id}",
     )
     db.commit()
     return ok(trade_dto(db, trade, user))
@@ -169,7 +169,7 @@ def confirm_trade(
             counterpart,
             "confirm",
             {"thing1": {"value": "交易完成"}},
-            page=f"pages/review/index?id={trade.id}",
+            page=f"pages/review/review?id={trade.id}",
         )
     else:
         item = db.get(Item, trade.item_id)
@@ -186,7 +186,7 @@ def confirm_trade(
             counterpart,
             "confirm",
             {"thing1": {"value": (item.title if item else "物品")[:20]}},
-            page=f"pages/trade/index?id={trade.id}",
+            page=f"pages/trade/trade?id={trade.id}",
         )
     db.commit()
     return ok(trade_dto(db, trade, user))
@@ -274,7 +274,7 @@ def review_trade(
         to_user,
         "review",
         {"thing1": {"value": user.nickname or "邻居"}},
-        page=f"pages/my-trades/index",
+        page=f"pages/my-trades/my-trades",
     )
     db.commit()
     return ok(trade_dto(db, trade, user))

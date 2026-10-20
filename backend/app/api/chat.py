@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db, get_verified_user
@@ -25,7 +26,12 @@ def list_conversations(
     convs = (
         db.query(Conversation)
         .filter((Conversation.user_a == user.id) | (Conversation.user_b == user.id))
-        .order_by(Conversation.id.desc())
+        # 有消息的在前，按最近消息时间；无消息的按创建时间
+        .order_by(
+            Conversation.last_message_at.is_(None),
+            Conversation.last_message_at.desc(),
+            Conversation.id.desc(),
+        )
         .all()
     )
     return ok({"list": [conversation_dto(db, c, user) for c in convs]})
@@ -57,6 +63,8 @@ def list_messages(
             q.order_by(DmMessage.id.desc()).limit(50).all()
         )
         rows = list(reversed(rows))
+    # 查看即已读：推进我的已读水位（未读红点依据，docs/12 P1-7）
+    _mark_read(db, conv, user)
     return ok(
         {
             "list": [
@@ -70,6 +78,23 @@ def list_messages(
             ]
         }
     )
+
+
+def _mark_read(db: Session, conv: Conversation, user: User) -> None:
+    latest = (
+        db.query(func.max(DmMessage.id))
+        .filter(DmMessage.conversation_id == conv.id)
+        .scalar()
+        or 0
+    )
+    if conv.user_a == user.id:
+        if latest > conv.a_read_msg_id:
+            conv.a_read_msg_id = latest
+            db.commit()
+    else:
+        if latest > conv.b_read_msg_id:
+            conv.b_read_msg_id = latest
+            db.commit()
 
 
 @router.post("/conversations/{conv_id}/messages")

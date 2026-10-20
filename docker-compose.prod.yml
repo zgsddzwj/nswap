@@ -47,6 +47,8 @@ services:
     volumes:
       # 图片落宿主机盘：重启/重新部署不丢（上规模后再切 COS/CDN，与 docs/13 一致）
       - ./data/uploads:/app/uploads
+      # 业主凭证图（独立目录，不进公网静态目录，仅 /api/admin/proofs 鉴权读取）
+      - ./data/proofs:/app/proofs
     depends_on:
       mysql:
         condition: service_healthy

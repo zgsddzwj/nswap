@@ -61,6 +61,7 @@
       </view>
       <view class="messages__conv-right">
         <text class="ns-hint">{{item.timeText}}</text>
+        <view wx:if="{{item.unread}}" class="messages__dot messages__dot--conv"></view>
       </view>
     </view>
 

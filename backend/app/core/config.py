@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     admin_session_secret: str = "dev-secret"
     enable_scheduler: bool = True
     upload_dir: str = "./uploads"
+    # 业主凭证图目录：不在静态目录下，仅经 /api/admin/proofs 鉴权读取（docs/12 P1-4）
+    proof_dir: str = "./proofs"
 
     # ---- 生产化加固（docs/09）----
     environment: str = "dev"  # dev | prod（Sentry 标签）

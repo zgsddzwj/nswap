@@ -18,6 +18,9 @@ class Conversation(Base):
     user_a: Mapped[int] = mapped_column(ForeignKey("users.id"))  # 物品方
     user_b: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)  # 意向方
     want_id: Mapped[int | None] = mapped_column(ForeignKey("item_wants.id"))
+    # 双方各自的已读水位（读到的最大 dm_messages.id）：> 水位且非本人发的 = 未读
+    a_read_msg_id: Mapped[int] = mapped_column(default=0)
+    b_read_msg_id: Mapped[int] = mapped_column(default=0)
     last_message_at: Mapped[datetime | None] = mapped_column(DateTime)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 

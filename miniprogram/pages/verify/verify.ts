@@ -130,7 +130,7 @@ Page({
       const picked = await chooseImages(1);
       if (!picked.length) return;
       this.setData({ manualUploading: true });
-      const url = await uploadImage(picked[0]);
+      const url = await uploadImage(picked[0], "proof"); // 凭证图走鉴权读取通道
       this.setData({ proofImage: url, manualUploading: false });
     } catch (e) {
       this.setData({ manualUploading: false });

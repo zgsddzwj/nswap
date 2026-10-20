@@ -155,7 +155,9 @@ Page({
   },
 
   async pullNew() {
-    if (!this.convId || !this.lastId) return;
+    // 注意：lastId=0（空会话）是合法状态——对方首条消息必须能拉到；
+    // 只需保证会话已确定，不可用 !lastId 拦截（否则空会话轮询死锁）
+    if (!this.convId) return;
     try {
       const r = await get<{ list: any[] }>(`/api/conversations/${this.convId}/messages`, {
         since: this.lastId,

@@ -123,3 +123,9 @@
   align-items: flex-end;
   flex-shrink: 0;
 }
+
+/* 会话未读红点（水位移交由后端 unread 字段） */
+.messages__dot--conv {
+  margin-top: 8rpx;
+  align-self: flex-end;
+}

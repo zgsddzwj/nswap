@@ -124,7 +124,7 @@ class WechatClient:
         payload = {
             "touser": openid,
             "template_id": template_id,
-            "page": page or "pages/home/index",
+            "page": page or "pages/home/home",
             "miniprogram_state": "formal",
             "data": {k: {"value": v} for k, v in data.items()},
         }

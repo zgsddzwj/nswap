@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, UploadFile
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.deps import get_active_user, get_db
 from app.core.errors import bad_request
 from app.models import User
@@ -29,18 +30,31 @@ def _check_upload_rate(user: User) -> None:
         raise too_many("上传过于频繁，请稍后再试")
 
 
-def save_upload(data: bytes, ext: str) -> str:
-    """保存图片并返回完整公网 URL（存储后端由 STORAGE_BACKEND 决定，docs/09 P0-1）。"""
+def save_upload(data: bytes, ext: str, kind: str = "public") -> str:
+    """保存图片并返回完整 URL（存储后端由 STORAGE_BACKEND 决定，docs/09 P0-1）。
+
+    kind=proof（业主凭证等敏感图）：存独立目录、返回鉴权 URL（/api/admin/proofs/*），
+    不进公网静态目录——拿到 URL 而无管理员会话也无法读取（docs/12 P1-4）。
+    """
+    if kind == "proof":
+        os.makedirs(settings.proof_dir, exist_ok=True)
+        filename = f"{uuid.uuid4().hex}{ext}"
+        with open(os.path.join(settings.proof_dir, filename), "wb") as f:
+            f.write(data)
+        return settings.public_base_url.rstrip("/") + f"/api/admin/proofs/{filename}"
     return get_storage().save(data, ext)
 
 
 @router.post("/uploads")
 async def upload_image(
     file: UploadFile,
+    kind: str = "public",
     user: User = Depends(get_active_user),
     db: Session = Depends(get_db),
 ):
     _check_upload_rate(user)
+    if kind not in ("public", "proof"):
+        raise bad_request("kind 参数不合法")
     ext = os.path.splitext(file.filename or "")[1].lower()
     if ext not in ALLOWED_EXT:
         raise bad_request("仅支持 jpg/png/webp/heic 图片")
@@ -53,7 +67,7 @@ async def upload_image(
         data, ext = process_image(data, ext)  # EXIF 清除 + 水印 + HEIC 转 JPEG（docs/11）
     except Exception:
         raise bad_request("图片文件无法识别，请重新选择")
-    return ok({"url": save_upload(data, ext)})
+    return ok({"url": save_upload(data, ext, kind)})
 
 
 class Base64Upload(BaseModel):
@@ -65,6 +79,7 @@ class Base64Upload(BaseModel):
 
     filename: str = Field(min_length=1, max_length=200)
     content: str = Field(min_length=1)
+    kind: str = "public"  # public | proof（凭证等敏感图走鉴权读取）
 
 
 @router.post("/uploads/base64")
@@ -74,6 +89,8 @@ def upload_image_base64(
     db: Session = Depends(get_db),
 ):
     _check_upload_rate(user)
+    if payload.kind not in ("public", "proof"):
+        raise bad_request("kind 参数不合法")
     ext = os.path.splitext(payload.filename)[1].lower()
     if ext not in ALLOWED_EXT:
         raise bad_request("仅支持 jpg/png/webp/heic 图片")
@@ -89,4 +106,4 @@ def upload_image_base64(
         data, ext = process_image(data, ext)
     except Exception:
         raise bad_request("图片文件无法识别，请重新选择")
-    return ok({"url": save_upload(data, ext)})
+    return ok({"url": save_upload(data, ext, payload.kind)})

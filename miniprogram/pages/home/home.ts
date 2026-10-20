@@ -59,6 +59,8 @@ Page({
   onShow() {
     refreshMe().then((me) => {
       if (!me) return;
+      // 准入制强拦截（eca66e6 决策）：游客统一停在验证页，与 publish/messages/mine 三页一致
+      if (redirectIfNotVerified(me)) return;
       const joined = !!me.user.community_id || !!me.user.verified;
       const scope: Scope = joined ? this.data.scope : "city";
       this.setData({ me, verified: !!me.user.verified, joined, scope });

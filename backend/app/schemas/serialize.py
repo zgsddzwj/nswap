@@ -338,6 +338,17 @@ def conversation_dto(db: Session, conv: Conversation, viewer: User) -> dict:
         .first()
     )
     cover = _visible_images(db, [item.id]).get(item.id, []) if item else []
+    # 未读 = 我的已读水位之后、且非本人发出的消息
+    marker = conv.a_read_msg_id if conv.user_a == viewer.id else conv.b_read_msg_id
+    unread = (
+        db.query(DmMessage)
+        .filter(
+            DmMessage.conversation_id == conv.id,
+            DmMessage.id > marker,
+            DmMessage.sender_id != viewer.id,
+        )
+        .count()
+    )
     return {
         "id": conv.id,
         "item": (
@@ -352,6 +363,7 @@ def conversation_dto(db: Session, conv: Conversation, viewer: User) -> dict:
             if last
             else None
         ),
+        "unread": unread,
         "updated_at": iso(conv.last_message_at or conv.created_at),
     }
 
