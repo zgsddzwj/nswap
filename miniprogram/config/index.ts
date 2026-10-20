@@ -21,9 +21,13 @@
  *   - 上传走 /api/uploads/base64（callContainer 通道，鉴权随 openid 注入）
  */
 
-// ⚠️ 当前为「自建服务器验证」配置（2026-10-19）：HTTP + 公网 IP，只能用于
-//    开发者工具（已配 urlCheck:false）或真机调试模式；域名与备案就绪后必须改为
-//    LOCAL_DEV 保持 false、SELF_HOSTED_BASE_URL = "https://域名/nswap"
+// ⚠️ 当前为「自建服务器验证」配置（2026-10-20）：
+//    图片加载被微信客户端对 http 的策略拦截（wx.request/uploadFile 勾选"不校验合法域名"
+//    可放行，但 <image> 组件不走该豁免）→ 过渡方案：服务器自签名 HTTPS + IP（见
+//    deploy/nginx.self-signed-443.conf.example）。小程序侧需勾选
+//    「不校验合法域名、web-view、TLS 版本以及 HTTPS 证书」（urlCheck:false 已预置）。
+//    仅限开发调试环境；域名与备案就绪后必须改为 LOCAL_DEV 保持 false、
+//    SELF_HOSTED_BASE_URL = "https://域名/nswap"
 export const LOCAL_DEV = false;
 
 /** 电脑局域网 IP（本地联调时把 LOCAL_DEV 改回 true 并同步此 IP） */
@@ -35,9 +39,9 @@ const LAN_IP = "192.168.0.230";
  * 例：export const SELF_HOSTED_BASE_URL = "https://api.your-domain.com";
  * 子路径隔离部署（nginx 网关多项目同机）时带上前缀，如 "https://域名/nswap"，
  * 管理后台入口会自动推导为 https://域名/nswap/admin。
- * 当前值：自建服务器（子路径隔离 /nswap），HTTP+IP 仅供开发者工具验证。
+ * 当前值：自建服务器（子路径隔离 /nswap），自签名 HTTPS+IP 仅供调试。
  */
-export const SELF_HOSTED_BASE_URL = "http://82.157.59.122/nswap";
+export const SELF_HOSTED_BASE_URL = "https://82.157.59.122/nswap";
 
 /** 部署模式：local=本地联调（X-DEV-OPENID）/ cloud=微信云托管 / self=自建服务器（token） */
 export type DeployMode = "local" | "cloud" | "self";
