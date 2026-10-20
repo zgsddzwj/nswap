@@ -35,7 +35,8 @@
       </swiper-item>
     </swiper>
     <view wx:else class="detail__swiper detail__swiper--empty">
-      <t-icon name="image" size="96rpx" color="var(--ns-ink-3)" />
+      <view class="detail__empty-char" style="color: {{typeMeta.color}};">{{typeMeta.char}}</view>
+      <view class="detail__empty-text">{{typeMeta.emptyText}}</view>
     </view>
 
     <!-- 主体信息 -->

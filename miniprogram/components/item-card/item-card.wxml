@@ -9,7 +9,8 @@
       lazy-load="{{true}}"
     />
     <view wx:else class="ic__cover ic__cover--empty">
-      <t-icon name="image" size="56rpx" color="var(--ns-ink-3)" />
+      <view class="ic__empty-char" style="color: {{typeMeta.color}};">{{typeMeta.char}}</view>
+      <view class="ic__empty-text">{{typeMeta.emptyText}}</view>
     </view>
     <view class="ic__type" style="background: {{typeMeta.color}};">{{typeMeta.label}}</view>
     <view wx:if="{{showStatus}}" class="ic__status">

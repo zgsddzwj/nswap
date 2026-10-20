@@ -1,7 +1,7 @@
 import { get, post, toastError } from "../../services/api";
 import { refreshUnreadBadge, refreshMe, redirectIfNotVerified } from "../../services/auth";
 import { createListLoader, ListLoader } from "../../utils/list";
-import { NOTIFY_META, NOTIFY_FALLBACK } from "../../utils/constants";
+import { NOTIFY_META, NOTIFY_FALLBACK, ITEM_TYPE_MAP, ItemType } from "../../utils/constants";
 import { relTime } from "../../utils/format";
 import { notificationTarget, navTo } from "../../utils/navigation";
 
@@ -24,6 +24,9 @@ interface ConversationRow {
   last_message: { content: string; created_at: string; sender_id: number } | null;
   updated_at: string;
   timeText: string;
+  unread: number;
+  thumbChar: string;
+  typeMetaColor: string;
 }
 
 Page({
@@ -77,10 +80,15 @@ Page({
   async loadConversations() {
     try {
       const r = await get<{ list: any[] }>("/api/conversations");
-      const rows: ConversationRow[] = (r.list || []).map((c) => ({
-        ...c,
-        timeText: relTime((c.last_message && c.last_message.created_at) || c.updated_at),
-      }));
+      const rows: ConversationRow[] = (r.list || []).map((c) => {
+        const tm = ITEM_TYPE_MAP[(c.item ? c.item.type : "sell") as ItemType] || ITEM_TYPE_MAP.sell;
+        return {
+          ...c,
+          timeText: relTime((c.last_message && c.last_message.created_at) || c.updated_at),
+          thumbChar: tm.char || "物",
+          typeMetaColor: tm.color,
+        };
+      });
       this.setData({ conversations: rows });
     } catch {
       /* ignore */

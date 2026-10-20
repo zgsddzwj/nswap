@@ -129,3 +129,16 @@
   margin-top: 8rpx;
   align-self: flex-end;
 }
+
+/* 会话无图占位（按形态字标） */
+.messages__conv-item--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ns-brand-soft);
+}
+
+.messages__conv-char {
+  font-size: 44rpx;
+  font-weight: 800;
+}

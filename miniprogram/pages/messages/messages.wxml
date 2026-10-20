@@ -49,7 +49,10 @@
       hover-class="messages__row--hover"
       bindtap="onConvTap"
     >
-      <image class="messages__conv-item" src="{{item.item.cover || '/assets/tabbar/home.png'}}" mode="aspectFill" />
+      <image wx:if="{{item.item.cover}}" class="messages__conv-item" src="{{item.item.cover}}" mode="aspectFill" />
+      <view wx:else class="messages__conv-item messages__conv-item--empty">
+        <text class="messages__conv-char" style="color: {{item.typeMetaColor}};">{{item.thumbChar}}</text>
+      </view>
       <view class="ns-grow">
         <view class="ns-row">
           <text class="messages__conv-name">{{item.counterpart.nickname}}</text>

@@ -305,3 +305,21 @@
   background: transparent;
   margin-right: 16rpx;
 }
+
+/* 无图占位：按形态语义化（求/送/换/售），与列表卡片一致 */
+.detail__swiper--empty {
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.detail__empty-char {
+  font-size: 160rpx;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0.8;
+}
+
+.detail__empty-text {
+  font-size: 28rpx;
+  color: var(--ns-ink-3);
+}

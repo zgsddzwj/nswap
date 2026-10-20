@@ -151,3 +151,21 @@
 }
 
 .ic-row .ic__meta { margin-top: auto; }
+
+/* 无图占位：按形态语义化（求/送/换/售 大字 + 说明），替代统一灰图标 */
+.ic__cover--empty {
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.ic__empty-char {
+  font-size: 84rpx;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.ic__empty-text {
+  font-size: 22rpx;
+  color: var(--ns-ink-3);
+}

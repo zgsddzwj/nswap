@@ -12,15 +12,19 @@ export interface EnumMeta {
   /** CSS 变量形式的主题色，如 var(--ns-give) */
   color: string;
   desc?: string;
+  /** 无图占位的大字（求/送/换/售） */
+  char?: string;
+  /** 无图占位的说明文字 */
+  emptyText?: string;
 }
 
 /* ---------------- 四形态 ---------------- */
 
 export const ITEM_TYPE_MAP: Record<ItemType, EnumMeta> = {
-  sell: { value: "sell", label: "出售", color: "var(--ns-sell)", desc: "标个参考价，等邻居来换" },
-  give: { value: "give", label: "赠送", color: "var(--ns-give)", desc: "送给需要它的邻居" },
-  swap: { value: "swap", label: "换物", color: "var(--ns-swap)", desc: "以物换物，各取所需" },
-  want: { value: "want", label: "求购", color: "var(--ns-want)", desc: "说说你想要什么" },
+  sell: { value: "sell", label: "出售", color: "var(--ns-sell)", desc: "标个参考价，等邻居来换", char: "售", emptyText: "暂无照片" },
+  give: { value: "give", label: "赠送", color: "var(--ns-give)", desc: "送给需要它的邻居", char: "送", emptyText: "免费送" },
+  swap: { value: "swap", label: "换物", color: "var(--ns-swap)", desc: "以物换物，各取所需", char: "换", emptyText: "想交换" },
+  want: { value: "want", label: "求购", color: "var(--ns-want)", desc: "说说你想要什么", char: "求", emptyText: "求购中" },
 };
 
 export const ITEM_TYPES: EnumMeta[] = Object.values(ITEM_TYPE_MAP);

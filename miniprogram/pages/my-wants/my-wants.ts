@@ -1,6 +1,7 @@
 /** 我的意向：我提交过的所有意向与状态（待回应/已接受/已完成/未通过），可撤回待回应的意向 */
 import { del, get, toastError } from "../../services/api";
 import { relTime } from "../../utils/format";
+import { ITEM_TYPE_MAP, ItemType } from "../../utils/constants";
 
 const CHIPS = [
   { key: "", label: "全部" },
@@ -25,10 +26,12 @@ interface WantRow {
   swap_offer: string | null;
   images: string[];
   created_at: string;
-  item: { id: number; title: string; cover: string | null } | null;
+  item: { id: number; title: string; cover: string | null; type: string } | null;
   statusText: string;
   timeText: string;
   swapOffer: string;
+  thumbChar: string;
+  typeMetaColor: string;
 }
 
 Page({
@@ -48,12 +51,17 @@ Page({
     try {
       const qs = this.data.filter ? `?status=${this.data.filter}&limit=50` : "?limit=50";
       const r = await get<{ list: any[] }>(`/api/me/wants${qs}`);
-      const rows: WantRow[] = (r.list || []).map((w) => ({
-        ...w,
-        statusText: STATUS_TEXT[w.status] || w.status,
-        timeText: relTime(w.created_at),
-        swapOffer: w.swap_offer || "",
-      }));
+      const rows: WantRow[] = (r.list || []).map((w) => {
+        const tm = ITEM_TYPE_MAP[(w.item ? w.item.type : "sell") as ItemType] || ITEM_TYPE_MAP.sell;
+        return {
+          ...w,
+          statusText: STATUS_TEXT[w.status] || w.status,
+          timeText: relTime(w.created_at),
+          swapOffer: w.swap_offer || "",
+          thumbChar: tm.char || "物",
+          typeMetaColor: tm.color,
+        };
+      });
       this.setData({ rows, loading: false });
     } catch (e) {
       this.setData({ loading: false });

@@ -115,3 +115,16 @@
   border-radius: 12rpx;
   background: var(--ns-bg);
 }
+
+/* 无图占位（按形态字标） */
+.mw__thumb--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ns-brand-soft);
+}
+
+.mw__thumb-char {
+  font-size: 52rpx;
+  font-weight: 800;
+}

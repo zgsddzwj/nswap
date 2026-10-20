@@ -19,7 +19,10 @@
     hover-class="mw__row--hover"
     bindtap="goDetail"
   >
-    <image class="mw__thumb" src="{{item.item.cover || '/assets/tabbar/home.png'}}" mode="aspectFill" />
+    <image wx:if="{{item.item.cover}}" class="mw__thumb" src="{{item.item.cover}}" mode="aspectFill" />
+    <view wx:else class="mw__thumb mw__thumb--empty">
+      <text class="mw__thumb-char" style="color: {{item.typeMetaColor}};">{{item.thumbChar}}</text>
+    </view>
     <view class="ns-grow mw__body">
       <view class="mw__row-top">
         <text class="mw__title ns-ellipsis">{{item.item.title}}</text>
